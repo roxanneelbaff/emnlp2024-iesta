@@ -1,0 +1,6 @@
+.ipynb*
+__pycache__
+thirdparty-data/*
+lexicon/*
+.idea
+data/debateorg

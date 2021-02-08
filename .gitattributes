@@ -1,0 +1,2 @@
+data/debateorg_arguments_txt/liberal/*.txt filter=lfs diff=lfs merge=lfs -text
+data/debateorg_arguments_txt/conservative/*.txt filter=lfs diff=lfs merge=lfs -text

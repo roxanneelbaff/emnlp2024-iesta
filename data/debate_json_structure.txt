@@ -1,0 +1,49 @@
+
+
+# loader.debates_df[['number_of_rounds']].describe()
+# comments - array of:
+    #  {'user_name': 'Dovahkinn117',
+    #  'time': '5 years ago',
+    #  'comment_text': 'I concede this debate, Alexander, you beat me fair and square.'},
+
+# votes - array of:
+    # {'user_name': 'Shifter',
+    # 'time': '5 years ago',
+    # 'votes_map':
+        # {
+            # 'Dovahkinn117':  ## participant_1_name
+                # {'Agreed with before the debate': False
+                # 'Agreed with after the debate': False,
+                # 'Who had better conduct': False,
+                # 'Had better spelling and grammar': False,
+                # 'Made more convincing arguments': False,
+                # 'Used the most reliable sources': False,
+                # 'Total points awarded': '0'},
+            # 'Alexander_The_Great':  ## participant_2_name
+                # {'Agreed with before the debate': False,
+                # 'Agreed with after the debate': False,
+                # 'Who had better conduct': False,
+                # 'Had better spelling and grammar': False,
+                # 'Made more convincing arguments': True,
+                # 'Used the most reliable sources': True,
+                # 'Total points awarded': '5'},
+            # 'Tied': {'Agreed with before the debate': True, ## always there
+                # 'Agreed with after the debate': True,
+                # 'Who had better conduct': True,
+                # 'Had better spelling and grammar': True,
+                # 'Made more convincing arguments': False,
+                # 'Used the most reliable sources': False}
+        #}
+     #}
+
+# rounds an array of rounds:
+  # each round has an array of 2 dict (side 1 Pro and 1 Con, text )
+
+# ? : forfeit_side, forfeit_label
+
+# start_date (actual date: '10/10/2012'), update_date (5 years ago)
+# ? voting_sytle: 'Open', 'Open with Elo Restrictions', 'Judge'
+# debate_status: 'Voting Period', 'Post Voting Period', 'Debating Period', 'Challenge Period'
+# number_of_comments' 'number_of_views'??, 'number_of_rounds', 'number_of_votes',
+
+#loader.debates_df.loc['If-the-Taliban-are-terrorists-then-the-United-States-are-as-well/1/'].votes

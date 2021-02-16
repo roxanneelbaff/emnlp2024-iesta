@@ -68,7 +68,7 @@ def normalize(X_train, X_test, normalizing_method="standard"):
         print("Normalizing by using standard scaler...")
         scaler = StandardScaler(copy=True, with_mean=False)
         scaler.fit(X_train)
-        X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
+        X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns, index=X_train.index)
         X_test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns) if (X_test is not None) else None
     elif normalizing_method == "log":    
         X_train = np.log(X_train+1)

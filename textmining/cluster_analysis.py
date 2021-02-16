@@ -95,6 +95,7 @@ class Analyzer():
         if self.predicted is None:
             
             self.df.reset_index(inplace=True)
+            print(self.df.columns)
             id_df = self.df[[idx]]
             print(pd.__version__)
             self.df.drop(columns=[idx], inplace = True)

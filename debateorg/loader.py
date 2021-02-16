@@ -2,25 +2,29 @@
 import json
 import pandas as pd
 import numpy as np
+import glob
 from . import properties
-
+from . import utils
+import pathlib
 
 class Loader():
     DATA_TYPE_USER = 'USER'
     DATA_TYPE_DEBATE = 'DEBATE'
+
+
     def __init__(self):
-        self.users_df = self.get_users()
-        self.debates_df = self.get_debates()
+        self.users_df = None
+        self.debates_df = None
         return
 
     def get_users(self):
-        users_df = pd.read_json(properties.DEBATEORG_USERS_JSON_PATH, orient='index')
-        users_df.index.name= 'user_name'
-        return users_df
+        self.users_df = pd.read_json(properties.DEBATEORG_USERS_JSON_PATH, orient='index')
+        self.users_df.index.name= 'user_name'
+        return self.users_df
 
     def get_debates(self):
-        debates_df = pd.read_json(properties.DEBATEORG_DEBATES_JSON_PATH, orient='index')
-        return debates_df
+        self.debates_df = pd.read_json(properties.DEBATEORG_DEBATES_JSON_PATH, orient='index')
+        return self.debates_df
 
     def get_user_political_parties(self, plot = True):
         parties_count_df = self.get_value_counts_df('party',
@@ -55,3 +59,113 @@ class Loader():
             top = 15 if len(count_df) >15 else len(count_df)
             count_df.head(top).plot(kind='bar')
         return count_df
+
+    def get_liberal_conservative_users(self):
+
+        lib_cons_users_df = self.users_df[(self.users_df['political_ideology'] == properties.LIBERAL_IDEOLOGY) | \
+                                            (self.users_df['political_ideology'] == properties.CONSERVATIVE_IDEOLOGY)]
+        liberal_cons_user_ids = lib_cons_users_df.index.values.tolist()
+        print('# of liberal and conservative users', len(liberal_cons_user_ids))
+        return lib_cons_users_df, liberal_cons_user_ids
+
+    def get_debates_w_liberal_or_conservative_paticipants(self):
+        _, liberal_cons_user_ids = self.get_liberal_conservative_users()
+        df = self.debates_df[(self.debates_df['participant_1_name'].isin(liberal_cons_user_ids)) | \
+                          (self.debates_df['participant_2_name'].isin(liberal_cons_user_ids))
+                          ].copy()
+        print('# of debates with liberal OR conservative participants: ',len(df))
+
+        return df
+
+    def _get_user_ideology( self, user):
+        ideology = None
+        if user not in self.users_df.index.values.tolist():
+            ideology = 'NOT FOUND'
+        else:
+            ideology = self.users_df.loc[user]['political_ideology']
+        return ideology
+
+    # returns a flat df for each voter
+    # columns: debate_id, category (debate), p{1,2}_name, p{1,2}_ideology, voter_ideology,
+    #          p{1,2}_agree_before, p{1,2}_agree_after, p{1,2}_convincing
+    def flatten_debate_votes(self):
+
+        result_arr = []
+        debates_err_arr = []
+        for i, row in self.debates_df.iterrows():
+
+            debate_info = {}
+            debate_info['debate_id'] = i
+            debate_info['category'] = row['category']
+            debate_info['p1_name'] = row['participant_1_name']
+            debate_info['p2_name'] = row['participant_2_name']
+
+            debate_info['p1_ideology'] = self._get_user_ideology(row['participant_1_name'])
+            debate_info['p2_ideology'] = self._get_user_ideology(row['participant_2_name'])
+
+            if row['number_of_votes'] < 1:
+                continue
+            for voter in row['votes']:
+                try:
+                    debate_voter = debate_info.copy()
+                    debate_voter['voter_username'] = voter['user_name']
+
+                    if voter['user_name'] not in self.users_df.index.values.tolist():
+                        continue
+                    debate_voter['voter_ideology'] = self._get_user_ideology(voter['user_name'])
+
+                    p1_votes = voter['votes_map'][row.participant_1_name]
+                    p2_votes = voter['votes_map'][row.participant_2_name]
+
+                    debate_voter['p1_agree_before'] = p1_votes['Agreed with before the debate']
+                    debate_voter['p1_agree_after'] = p1_votes['Agreed with after the debate']
+                    debate_voter['p1_convincing'] = p1_votes['Made more convincing arguments']
+
+                    debate_voter['p2_agree_before'] = p2_votes['Agreed with before the debate']
+                    debate_voter['p2_agree_after'] = p2_votes['Agreed with after the debate']
+                    debate_voter['p2_convincing'] = p2_votes['Made more convincing arguments']
+
+                    result_arr.append(debate_voter)
+                except Exception as e:
+                    debates_err_arr.append(i)
+
+                    # print(e)
+
+        result_df = pd.DataFrame(result_arr)
+        return result_df, debates_err_arr
+
+
+@staticmethod
+def get_args_w_effect(ideology):
+    ideology = ideology.lower()
+    args_df = pd.read_csv(properties.DEBATEORG_ARGS_W_EFFECT_PATH.format(ideology),
+                          index_col = 'numeric_id')
+    return args_df
+
+# The data is already saved under DEBATEORG_ARGS_TEXT_FOLDER_PATH: ../data/debateorg_arguments_txt
+def save_args_as_texts(ideology):
+    ideology = ideology.lower()
+    df = get_args_w_effect(ideology)
+
+    folder_path = properties.DEBATEORG_ARGS_TEXT_FOLDER_PATH.format(ideology)
+    utils.create_folder(folder_path)
+
+    for idx, row in df.iterrows():
+        arg = row['argument'].strip()
+        if len(arg) == 0 or arg =='forfeit':
+            continue
+
+        with open(folder_path + "{}_{}.txt".format(ideology, ideology, str(idx)), "w", encoding='utf-8') as f:
+            f.write(arg)
+
+# These paths are used as input for the opinion finder
+def save_arg_txt_links(ideology):
+    ideology = ideology.lower()
+    path_args_txt =str(pathlib.Path(properties.DEBATEORG_ARGS_TEXT_FILES).resolve())
+    txt_links = glob.glob(path_args_txt.format(ideology))
+
+    links_str = '\n'.join(txt_links)
+
+    with open(properties.DOCLIST_PATH.format(ideology), "w", encoding='utf-8') as f:
+        f.write(links_str)
+

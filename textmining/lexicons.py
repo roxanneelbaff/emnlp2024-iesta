@@ -1,7 +1,7 @@
 import pandas as pd
 import spacy
 from spacy_arguing_lexicon import ArguingLexiconParser
-
+from empath import Empath
 
 
 # download the NRC emotion lexicon from http://sentiment.nrc.ca/lexicons-for-research/NRC-Emotion-Lexicon.zip
@@ -152,3 +152,17 @@ def count_mpqa_arg(df, text_column='text',prefix='mpqa_arg_'):
     arg_lex_nlp, arg_lexicon_labels = load_arg_lexicon()
     result = df.apply(_count_mpqa_arg, axis=1, args=(arg_lex_nlp, arg_lexicon_labels, text_column, prefix))
     return result
+
+
+## EMPATH from Stanford
+def _count_empath_categories(row, text_column, empath_lexicon, prefix):
+    empath_dic = empath_lexicon.analyze(row[text_column], normalize=True)
+    for k,v in empath_dic.items():
+        row['{}_{}'.format(prefix, k)] = v
+
+    return row
+def count_empath(df, text_column='text',prefix='empath_'):
+    lexicon = Empath()
+    result = df.apply(_count_empath_categories, axis=1, args=(text_column, lexicon, prefix))
+    return result
+

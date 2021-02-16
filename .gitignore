@@ -4,3 +4,5 @@ thirdparty-data/*
 lexicon/*
 .idea
 data/debateorg
+data/extracted_features/opinionfinder_output
+*.doclist

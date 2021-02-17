@@ -161,8 +161,29 @@ def _count_empath_categories(row, text_column, empath_lexicon, prefix):
         row['{}_{}'.format(prefix, k)] = v
 
     return row
-def count_empath(df, text_column='text',prefix='empath_'):
+
+def _count_empath_based_on_ideology(row, text_column, empath_lexicon, prefix):
+    empath_dic = empath_lexicon.analyze(str(row[text_column]), categories=["liberal", "conservative"], normalize=True)
+    for k,v in empath_dic.items():
+        row['{}_{}'.format(prefix, k)] = v
+
+    return row
+
+def count_empath_for_ideologies(df, text_column='text',prefix='empath_ideology_'):
     lexicon = Empath()
-    result = df.apply(_count_empath_categories, axis=1, args=(text_column, lexicon, prefix))
+    lexicon.create_category("liberal", ["social forces", "social responsibility", "free expression", "human rights",
+                                        "equal rights", "concern", "care", "help", "health", "safety", "nutrition",
+                                        "basic human dignity", "oppression", "diversity", "deprivation", "alienation",
+                                        "big corporations", "corporate welfare", "ecology", "ecosystem", "biodiversity",
+                                        "pollution"], model="reddit")
+    lexicon.create_category("conservative", [ "character", "virtue", "discipline", "tough it out", "get tough",
+                                              "tough love", "strong",  "self-reliance", "individual responsibility",
+                                              "backbone", "standards", "authority", "heritage", "competition", "earn",
+                                              "hard work", "enterprise", "property rights", "reward", "freedom",
+                                              "intrusion", "interference", "meddling", "punishment", "human nature",
+                                              "traditional", "common sense", "dependency", "self-indulgent", "elite",
+                                              "quotas", "breakdown", "corrupt", "decay", "rot", "degenerate",
+                                              "deviant", "lifestyle"], model="reddit")
+    result = df.apply(_count_empath_based_on_ideology, axis=1, args=(text_column, lexicon, prefix))
     return result
 

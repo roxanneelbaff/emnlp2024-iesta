@@ -1,8 +1,14 @@
 .ipynb*
 __pycache__
+iesta.egg-info
+*egg*
 thirdparty-data/*
 lexicon/*
 .idea
 data/debateorg
 data/extracted_features/opinionfinder_output
 *.doclist
+data/debateorg_arguments_txt
+data/splitted
+notebooks/transformers
+#data

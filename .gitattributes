@@ -1,5 +1,6 @@
 data/debateorg_arguments_txt/liberal/*.txt filter=lfs diff=lfs merge=lfs -text
 data/debateorg_arguments_txt/conservative/*.txt filter=lfs diff=lfs merge=lfs -text
-data/*.csv filter=lfs diff=lfs merge=lfs -text
-data/debateorg_arguments_txt/liwc_conservatives.csv filter=lfs diff=lfs merge=lfs -text
-data/debateorg_arguments_txt/liwc_liberal.csv filter=lfs diff=lfs merge=lfs -text
+data/debateorg_arguments_txt/*.txt filter=lfs diff=lfs merge=lfs -text
+data/*.parquet filter=lfs diff=lfs merge=lfs -text
+data/extracted_features/liwc_original/* filter=lfs diff=lfs merge=lfs -text
+data/extracted_features/liwc_original/* filter=lfs diff=lfs merge=lfs -text

@@ -5,7 +5,6 @@ iesta.egg-info
 thirdparty-data/*
 lexicon/*
 .idea
-data/debateorg
 data/extracted_features/opinionfinder_output
 *.doclist
 data/debateorg_arguments_txt

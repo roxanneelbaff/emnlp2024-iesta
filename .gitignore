@@ -10,5 +10,7 @@ data/extracted_features/opinionfinder_output
 data/debateorg_arguments_txt
 data/splitted
 notebooks/transformers
-#data
+*.parquet
 iesta/iesta-logs/
+*venv*
+data/

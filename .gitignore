@@ -8,9 +8,10 @@ lexicon/*
 data/extracted_features/opinionfinder_output
 *.doclist
 data/debateorg_arguments_txt
+data/debateorg
 data/splitted
 notebooks/transformers
-*.parquet
 iesta/iesta-logs/
 *venv*
-data/
+build
+

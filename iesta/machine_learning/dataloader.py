@@ -11,14 +11,23 @@ import iesta.utils as utils
 import iesta.processor as proc
 import iesta.properties as properties
 import pandas as pd
-
+import re
 from iesta.machine_learning import dataloader
-
+import cleantext
 
 ### HELPERS
 
 def clean_argument(arg):
-    arg = arg.strip()
+    arg = cleantext.clean(arg, 
+            lower=False, 
+            no_line_breaks=True, 
+            no_urls=True, 
+            no_emails=True, 
+            no_phone_numbers=True, 
+            replace_with_url="<URL>",
+            replace_with_email="<EMAIL>",
+            replace_with_phone_number="<PHONE>",
+            lang="en")
     # replace smileys
     # replace URLS
     return arg
@@ -95,6 +104,7 @@ class IESTAData:
                                  f"_debate_arguments_w{abstract_st}"
                                  f"_effect_test{self.test_split}"
                                  f"_random{self.random_state}.parquet")
+        print(file_path)
         tqdm.pandas()
 
         if os.path.isfile(file_path):

@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='iesta',
-    version='0.1',
+    version='1.0',
     description='Python package for Conf 2023 for INEFF-IFFE Style Transfer',
     # url='',
     author='Roxanne El Baff',

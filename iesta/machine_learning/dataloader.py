@@ -32,6 +32,9 @@ def clean_argument(arg):
     # replace URLS
     return arg
 
+def _apply_clean_txt(row, col):
+    row["cleaned_text"] = clean_argument(row[col])
+    return row
 
 def apply_add_rounds(row, df__):
     row['rounds'] = df__["round"].tolist()
@@ -92,6 +95,7 @@ class IESTAData:
     pivot_df: pd.DataFrame = None
     pivot_binary_effect: pd.DataFrame = None
 
+
     def split_iesta_dataset_by_debate(self):
         def _abstract_effect(row):
             if row['effect'] != "effective":
@@ -100,8 +104,8 @@ class IESTAData:
 
         abstract_st = "_abstracted" if self.abstract_effect else ""
         file_path = os.path.join(properties.ROOT_PATH,
-                                 f"splitted_{self.ideology}"
-                                 f"_debate_arguments_w{abstract_st}"
+                                 f"splitted_{self.ideology.lower()}"
+                                 f"_debate_arguments{abstract_st}"
                                  f"_effect_test{self.test_split}"
                                  f"_random{self.random_state}.parquet")
         print(file_path)
@@ -158,21 +162,22 @@ class IESTAData:
 
         tqdm.pandas()
 
-        df_file = os.path.join(path, f"processed_data_{self.ideology}.parquet")
+        df_file = os.path.join(path, f"processed_data_{self.ideology.lower()}.parquet")
 
         if os.path.isfile(df_file):
             iesta.logger.info("File already created. Loading file...")
             df = pd.read_parquet(df_file)
             split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'], data_w_splits_df['effect'])
-            return df, split_effect_pivot_df
+            return df, split_effect_pivot_df, df_file
 
+        text_col_name = "argument"
         for effect_split, effect_split_df in data_w_splits_df.groupby(["effect", "split"]):
             # for an effect
             args_lst = []
             temp_df = pd.DataFrame()
 
             utils.create_folder(path)
-            file = os.path.join(path, f"{self.ideology}_{effect_split[0]}_{effect_split[1]}.txt")
+            file = os.path.join(path, f"{self.ideology.lower()}_{effect_split[0]}_{effect_split[1]}.txt")
 
             if self.methodology == METHODOLOGY.EACH:
                 args_lst = effect_split_df["argument"].tolist()
@@ -215,6 +220,7 @@ class IESTAData:
                 # for group, df_ in data_w_splits_df.groupby(["debate_id", "round"]):
                 df_ = effect_split_df.apply(dataloader.apply_add_prev_arg, args=(data_w_splits_df,), axis=1)
                 args_lst.extend(df_["current_arg_w_previous"].tolist())
+                text_col_name = "current_arg_w_previous"
                 result_df_lst.append(df_)
 
             with open(file, 'w', encoding="utf8") as f:
@@ -223,12 +229,14 @@ class IESTAData:
                     f.write(f"{arg}\n")
 
         df = pd.concat(result_df_lst)
-
+        df= df.apply(dataloader._apply_clean_txt, args=(text_col_name,) , axis=1)
         df.to_parquet(df_file)
-        return df, pd.crosstab(df['split'], df['effect'])
+        return df, pd.crosstab(df['split'], df['effect']), df_file
 
     def load(self, add_binary_effect:bool = True):
-        self.data_df, self.pivot_df = self.prepare_data_for_transformers()
+        self.data_df, self.pivot_df, file_path = self.prepare_data_for_transformers()
+        
         if add_binary_effect:
             self.data_df = self.data_df.apply(dataloader.apply_binary_effect, axis=1)
             self.pivot_binary_effect = pd.crosstab(self.data_df['split'], self.data_df['binary_effect'])
+        return self.data_df, self.pivot_df, file_path 

@@ -240,3 +240,15 @@ class IESTAData:
             self.data_df = self.data_df.apply(dataloader.apply_binary_effect, axis=1)
             self.pivot_binary_effect = pd.crosstab(self.data_df['split'], self.data_df['binary_effect'])
         return self.data_df, self.pivot_df, file_path 
+
+    def get_training_data(self, add_binary_effect:bool = True):
+        _, _, _ = self.load(add_binary_effect=add_binary_effect)
+        abstract_st = "abstracted" if self.abstract_effect else ""
+        path = os.path.join(properties.ROOT_PATH, "splitted", abstract_st, f"methodology_{self.methodology}")
+        df_file = os.path.join(path, f"processed_data_{self.ideology.lower()}_training.parquet")
+        training_data = self.data_df[self.data_df["split"]== "training"].copy()
+        utils.create_folder(path)
+        training_data.to_parquet(df_file)
+        return training_data, df_file
+
+

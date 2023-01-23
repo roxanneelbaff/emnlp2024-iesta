@@ -13,7 +13,7 @@ Path(logs_folder).mkdir(parents=True, exist_ok=True)
 
 # Create a custom logger
 global logger
-logger = logging.getLogger("textmining-utility")
+logger = logging.getLogger("iesta")
 
 # Create handlers
 console_handler = logging.StreamHandler()

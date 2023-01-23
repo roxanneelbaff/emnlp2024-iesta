@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='iesta',
-    version='1.1',
+    version='1.2',
     description='Python package for Conf 2023 for INEFF-IFFE Style Transfer',
     # url='',
     author='Roxanne El Baff',
@@ -16,7 +16,9 @@ setup(
                       # for spacy - it uses soft_unicode which was removed from version > 2.0.1
                       'markupsafe<=2.1.1',
                       'empath>=0.89',
-                      'tqdm'
+                      'tqdm',
+                      'nlpaf>=2.6.0',
+                      'seaborn'
                       ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

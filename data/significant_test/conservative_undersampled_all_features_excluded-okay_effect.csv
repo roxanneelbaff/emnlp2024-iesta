@@ -1,0 +1,24 @@
+;feature;effective ineffective;effective provocative;ineffective provocative
+0;mpqa_emphasis;0.07;;
+1;mpqa_necessity;;;
+2;mpqa_causation;0.08;;-0.07
+3;mpqa_inconsistency;0.08;;
+4;mpqa_priority;0.05;;
+5;mpqa_argumentative;0.1;;-0.08
+6;mpqa_args_count;0.1;;-0.08
+7;emotion_hartmann_anger_count;0.09;0.07;
+8;emotion_hartmann_anger_ratio;;;
+9;emotion_hartmann_disgust_count;0.1;;-0.07
+10;emotion_hartmann_disgust_ratio;0.07;;
+11;emotion_hartmann_fear;0.07;;
+12;emotion_hartmann_fear_count;0.07;;-0.07
+13;emotion_hartmann_fear_ratio;0.06;;-0.07
+14;emotion_hartmann_neutral_count;0.11;;-0.08
+15;emotion_hartmann_sadness_count;0.07;;
+16;emotion_hartmann_sadness_ratio;0.06;;
+17;emotion_hartmann_surprise_count;0.06;;
+18;emotion_hartmann_surprise_ratio;0.05;;
+19;hedge_C_count;0.1;;-0.09
+20;toxicity_neutral;;;
+21;toxicity_neutral_count;0.12;;-0.09
+22;toxicity_toxic;;;

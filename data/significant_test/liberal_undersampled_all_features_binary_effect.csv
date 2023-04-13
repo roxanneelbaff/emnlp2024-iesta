@@ -1,0 +1,20 @@
+;feature;effective ineffective
+0;mpqa_authority;0.02
+1;mpqa_necessity;0.04
+2;mpqa_causation;0.06
+3;mpqa_inconsistency;0.06
+4;mpqa_possibility;0.05
+5;mpqa_contrast;0.05
+6;mpqa_priority;0.04
+7;mpqa_argumentative;0.07
+8;mpqa_args_count;0.07
+9;emotion_hartmann_anger_count;0.04
+10;emotion_hartmann_disgust;0.06
+11;emotion_hartmann_disgust_count;0.07
+12;emotion_hartmann_disgust_ratio;0.04
+13;emotion_hartmann_joy;0.07
+14;emotion_hartmann_joy_count;0.06
+15;emotion_hartmann_joy_ratio;0.05
+16;emotion_hartmann_neutral_count;0.1
+17;hedge_C_count;0.04
+18;toxicity_neutral_count;0.09

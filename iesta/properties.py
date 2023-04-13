@@ -32,3 +32,5 @@ FEATURE_EMPATH_IDEOLOGY_PATH = os.path.join( ROOT_PATH, 'extracted_features', 'e
 
 CONSERVATIVE_IDEOLOGY = 'Conservative'
 LIBERAL_IDEOLOGY = 'Liberal'
+
+IDEOLOLGY_LST = [ CONSERVATIVE_IDEOLOGY.lower(),LIBERAL_IDEOLOGY.lower(),]

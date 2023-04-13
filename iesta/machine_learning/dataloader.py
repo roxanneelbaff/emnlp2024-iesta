@@ -1,5 +1,5 @@
 import dataclasses
-from typing import ClassVar
+from typing import ClassVar, Dict
 
 from sklearn.model_selection import train_test_split
 import numpy
@@ -14,6 +14,7 @@ import pandas as pd
 import re
 from iesta.machine_learning import dataloader
 import cleantext
+import iesta.properties as prop  
 
 ### HELPERS
 
@@ -252,3 +253,43 @@ class IESTAData:
         return training_data, df_file
 
 
+
+################### GENERIC FUNCTIONS ###################
+from glob import glob
+from iesta.machine_learning.feature_extraction import get_features_df
+
+
+
+def load_training_data(methodology:str =METHODOLOGY.EACH)-> Dict[str,pd.DataFrame]:
+
+    training_data = {}
+    for ideology in prop.IDEOLOLGY_LST:
+        dataloader = IESTAData(ideology=ideology, methodology=methodology)
+
+        _, training_data_path = dataloader.get_training_data()
+        training_data[ideology] = pd.read_parquet(training_data_path)
+
+    return training_data
+
+
+def load_features_df():#->Dict[str,pd.DataFrame] Dict[str, Dict[str, pd.DataFrame]]):
+    path = "../data/extracted_features/"
+
+    training_data = load_training_data(methodology =METHODOLOGY.EACH)
+
+    feature_dfs = {}
+
+    for ideology in prop.IDEOLOLGY_LST:
+        style_features_path = glob(f"{path}/{ideology}_style-features_1000/*.parquet")
+        transformer_features_path = glob(f"{path}/{ideology}_transformer-features_100/*.parquet")
+
+        feature_dfs[ideology] = {}
+
+        empath_mpqa_df  = get_features_df(style_features_path, 1000, training_data[ideology])
+        transformers_based_features_df = get_features_df(transformer_features_path, 100, training_data[ideology])
+
+
+        difference = transformers_based_features_df.columns.difference(empath_mpqa_df.columns)
+        feature_dfs[ideology] = empath_mpqa_df.merge(transformers_based_features_df[difference], right_index=True, left_index=True)
+        
+    return training_data, feature_dfs

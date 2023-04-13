@@ -15,6 +15,9 @@ import re
 from iesta.machine_learning import dataloader
 import cleantext
 import iesta.properties as prop  
+from datasets import load_dataset
+from tqdm import tqdm
+from datasets.dataset_dict import DatasetDict
 
 ### HELPERS
 
@@ -96,6 +99,9 @@ class IESTAData:
     pivot_df: pd.DataFrame = None
     pivot_binary_effect: pd.DataFrame = None
 
+    def _get_out_files_path(self):
+        abstract_st = "_abstracted" if self.abstract_effect else ""
+        return os.path.join(properties.ROOT_PATH, "splitted", abstract_st, f"methodology_{self.methodology}")
 
     def split_iesta_dataset_by_debate(self):
         def _abstract_effect(row):
@@ -159,7 +165,7 @@ class IESTAData:
 
         result_df_lst = []
         abstract_st = "abstracted" if self.abstract_effect else ""
-        path = os.path.join(properties.ROOT_PATH, "splitted", abstract_st, f"methodology_{self.methodology}")
+        path = self._get_out_files_path()
 
         tqdm.pandas()
 
@@ -245,7 +251,7 @@ class IESTAData:
     def get_training_data(self, add_binary_effect:bool = True):
         _, _, _ = self.load(add_binary_effect=add_binary_effect)
         abstract_st = "abstracted" if self.abstract_effect else ""
-        path = os.path.join(properties.ROOT_PATH, "splitted", abstract_st, f"methodology_{self.methodology}")
+        path = self._get_out_files_path()
         df_file = os.path.join(path, f"processed_data_{self.ideology.lower()}_training.parquet")
         training_data = self.data_df[self.data_df["split"]== "training"].copy()
         utils.create_folder(path)
@@ -253,6 +259,38 @@ class IESTAData:
         return training_data, df_file
 
 
+    def upload_to_huggingface(self, effect):
+        dataset_name= f"notaphoenix/iesta_{self.methodology}_{self.ideology}_{effect}"
+
+        try:
+            self.dataset = load_dataset(dataset_name, use_auth_token=True) 
+        except FileNotFoundError as e:
+            print("dataset was not found on hugging face.")
+            print("creating huggingface dataset from local dataset")
+            path = self._get_out_files_path()
+            data_w_splits_df, _ = self.split_iesta_dataset_by_debate()
+            _df  = data_w_splits_df[data_w_splits_df['effect'] == effect].copy()
+
+            data_files: dict ={}
+            for s in _df['split'].unique():
+                data_files[s] = os.path.join(path, f"{self.ideology.lower()}_{effect}_{s}.txt")
+                
+            ds: DatasetDict = load_dataset("text", data_files=data_files)
+            parquet_data_files: dict = {}
+            for split, dataset in ds.items():
+                fname:str = f"../data/temp_hf/{split}_{self.ideology}_{effect}.parquet"
+                dataset.to_parquet(fname)
+                parquet_data_files[split]= fname
+
+            self.hf_dataset = load_dataset("parquet", data_files=parquet_data_files)
+
+            self.hf_dataset.push_to_hub(dataset_name, private=True )
+
+    def get_hf_sample(self, split:str="train", count:int=5):
+        samples = self.dataset[split].shuffle().select(range(count))
+        return samples
+
+        
 
 ################### GENERIC FUNCTIONS ###################
 from glob import glob

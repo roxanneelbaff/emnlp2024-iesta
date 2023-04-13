@@ -67,7 +67,7 @@ def calc_sign_effects(original_df:pd.DataFrame,
     
 def run_all_significance_test(feature_dfs):
     independent_vars = ["effect","binary_effect"]
-    excluded_effects = [[], ["Okay"]]
+    excluded_effects = [[], ["okay"]]
 
     undersample = [True, False]
     significance = {}
@@ -75,11 +75,12 @@ def run_all_significance_test(feature_dfs):
         for iv in independent_vars:
             for excluded_effect in excluded_effects:
                 for us in undersample:
+                    print("Running {ideology} {iv} {excluded_effect}")
                     excluded_str = "_"+"_".join(excluded_effect) if len(excluded_effect)>0 else ""
                     undersample_str = "_undersampled"  if us else ""
 
                     features_df  = feature_dfs[ideology]
-                    features_df  = features_df[~features_df[iv].isin(excluded_effect)].copy() if len(excluded_effect) >0 else features_df
+                    features_df  = features_df[~features_df["effect"].isin(excluded_effect)].copy() if len(excluded_effect) >0 else features_df
                     significance[f'{ideology}_{iv}{undersample_str}{excluded_str}_all_features'] = iesta.stats.significance.calc_sign_effects(features_df, ideology, "all_features",  iv,  undersample= us, exclude_iv_vals = excluded_effect)
 
                     #transformers_features_df  = feature_dfs[ideology]["transformers"]

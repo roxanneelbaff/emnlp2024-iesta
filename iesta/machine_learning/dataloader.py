@@ -11,13 +11,11 @@ import iesta.utils as utils
 import iesta.processor as proc
 import iesta.properties as properties
 import pandas as pd
-import re
 from iesta.machine_learning import dataloader
 import cleantext
 import iesta.properties as prop  
-from datasets import load_dataset
 from tqdm import tqdm
-from datasets.dataset_dict import DatasetDict
+from sklearn.utils.random import sample_without_replacement
 
 ### HELPERS
 
@@ -74,6 +72,14 @@ def apply_binary_effect(row):
 
     return row
 
+def _get_rand_sample_indices(populaion,sample_num,random_state=42):
+        return sample_without_replacement(populaion, sample_num)
+
+def _get_sample_debates(df, split, sample_ratio:float = 0.3):
+    debates = df[df['split'] == split]['debate_id'].unique().tolist()
+    sample_size = round(len(debates) * sample_ratio)
+    sample_indices = _get_rand_sample_indices(len(debates), sample_size)
+    return [debates[x] for x in sample_indices]
 
 ## END OF HELPERS
 @dataclasses.dataclass
@@ -98,16 +104,37 @@ class IESTAData:
     data_df: pd.DataFrame = None
     pivot_df: pd.DataFrame = None
     pivot_binary_effect: pd.DataFrame = None
+    evaluation_classfier_data_flag:int = dataloader.IESTAData._WITHOUT_EVAL_CLASSIFIER
+
+    _ALL_DATA_: ClassVar = 0
+    _ONLY_EVAL_CLASSIFIER_: ClassVar =1
+    _WITHOUT_EVAL_CLASSIFIER: ClassVar = 2
+
+    keep_labels = None #['effective', 'ineffective', 'provocative', 'okay']
+    
+
+
 
     def _get_out_files_path(self):
         abstract_st = "_abstracted" if self.abstract_effect else ""
         return os.path.join(properties.ROOT_PATH, "splitted", abstract_st, f"methodology_{self.methodology}")
 
-    def split_iesta_dataset_by_debate(self):
+    def split_iesta_dataset_by_debate(self): 
+        """
+        parammeters:
+            evaluation_classfier_data_flag: int 
+                if 0 get all data
+                if 1 get only 
+        """ 
         def _abstract_effect(row):
             if row['effect'] != "effective":
                 row['effect'] = "ineffective"
             return row
+
+        def _apply_add_evaluation_classifier_data(row, debates):
+                row['is_for_eval_classifier'] = True if row['debate_id'] in debates else False
+                return row 
+
 
         abstract_st = "_abstracted" if self.abstract_effect else ""
         file_path = os.path.join(properties.ROOT_PATH,
@@ -120,6 +147,26 @@ class IESTAData:
 
         if os.path.isfile(file_path):
             data_w_splits_df = pd.read_parquet(file_path)
+            # GET data for the evaluation trainor for style
+            
+            
+            if 'is_for_eval_classifier' not in data_w_splits_df.columns.tolist():
+                print("is_for_eval_classifier is not in the columns, adding it")
+                sample_size = round(len(data_w_splits_df[data_w_splits_df['split'] == 'training']['debate_id'].unique().tolist())*0.3)
+
+                training_debates_sample = _get_sample_debates(data_w_splits_df, 'training')
+                validation_debates_sample = _get_sample_debates(data_w_splits_df, 'validation')
+                test_debates_sample = _get_sample_debates(data_w_splits_df, 'test')
+                sample_debates = training_debates_sample + validation_debates_sample + test_debates_sample
+                data_w_splits_df = data_w_splits_df.apply(_apply_add_evaluation_classifier_data, axis=1, args=(sample_debates,))
+                data_w_splits_df.to_parquet(file_path)
+            if self.evaluation_classfier_data_flag == IESTAData._ONLY_EVAL_CLASSIFIER_:
+                data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == True]
+            elif self.evaluation_classfier_data_flag == IESTAData._WITHOUT_EVAL_CLASSIFIER:
+                data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == False] 
+
+            if self.keep_labels is not None and len(self.keep_labels)>0:
+                data_w_splits_df = data_w_splits_df[data_w_splits_df['effect'].isin(self.keep_labels)] 
             split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'], data_w_splits_df['effect'])
             return data_w_splits_df, split_effect_pivot_df
 
@@ -151,6 +198,22 @@ class IESTAData:
             assert len(data_w_splits_df[data_w_splits_df['split'] == split]['debate_id'].unique()) == \
                    len(debate_split_df[debate_split_df['split'] == split])
 
+
+        # GET data for the evaluation trainor for style        
+        sample_size = round(len(data_w_splits_df[data_w_splits_df['split'] == 'training']['debate_id'].unique().tolist())*0.3)
+
+        training_debates_sample = _get_sample_debates(data_w_splits_df, 'training')
+        validation_debates_sample = _get_sample_debates(data_w_splits_df, 'validation')
+        test_debates_sample = _get_sample_debates(data_w_splits_df, 'test')
+        sample_debates = training_debates_sample + validation_debates_sample + test_debates_sample
+        data_w_splits_df = data_w_splits_df.apply(_apply_add_evaluation_classifier_data, axis=1, args=(sample_debates,))
+        
+        if self.evaluation_classfier_data_flag == IESTAData._ONLY_EVAL_CLASSIFIER_:
+            data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == True]
+        elif self.evaluation_classfier_data_flag == IESTAData._WITHOUT_EVAL_CLASSIFIER:
+            data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == False] 
+
+
         # Abstract
         if self.abstract_effect:
             data_w_splits_df = data_w_splits_df.apply(_abstract_effect, axis=1)
@@ -164,7 +227,7 @@ class IESTAData:
         data_w_splits_df, split_effect_pivot_df = self.split_iesta_dataset_by_debate()
 
         result_df_lst = []
-        abstract_st = "abstracted" if self.abstract_effect else ""
+        # abstract_st = "abstracted" if self.abstract_effect else ""
         path = self._get_out_files_path()
 
         tqdm.pandas()
@@ -201,7 +264,7 @@ class IESTAData:
                     args_lst.extend(df_["argument"].tolist())
 
             elif self.methodology in [METHODOLOGY.FIRST_LAST]:
-                for group, df_ in effect_split_df.groupby(["debate_id", "p_name"]):
+                for _, df_ in effect_split_df.groupby(["debate_id", "p_name"]):
                     df_ = df_[(df_["round"] == df_["round"].min()) | (df_["round"] == df_["round"].max())]
                     df_ = df_.sort_values(by="round")
 
@@ -259,43 +322,9 @@ class IESTAData:
         return training_data, df_file
 
 
-    def upload_to_huggingface(self, effect):
-        dataset_name= f"notaphoenix/iesta_{self.methodology}_{self.ideology}_{effect}"
-
-        try:
-            self.dataset = load_dataset(dataset_name, use_auth_token=True) 
-        except FileNotFoundError as e:
-            print("dataset was not found on hugging face.")
-            print("creating huggingface dataset from local dataset")
-            path = self._get_out_files_path()
-            data_w_splits_df, _ = self.split_iesta_dataset_by_debate()
-            _df  = data_w_splits_df[data_w_splits_df['effect'] == effect].copy()
-
-            data_files: dict ={}
-            for s in _df['split'].unique():
-                data_files[s] = os.path.join(path, f"{self.ideology.lower()}_{effect}_{s}.txt")
-                
-            ds: DatasetDict = load_dataset("text", data_files=data_files)
-            parquet_data_files: dict = {}
-            for split, dataset in ds.items():
-                fname:str = f"../data/temp_hf/{split}_{self.ideology}_{effect}.parquet"
-                dataset.to_parquet(fname)
-                parquet_data_files[split]= fname
-
-            self.hf_dataset = load_dataset("parquet", data_files=parquet_data_files)
-
-            self.hf_dataset.push_to_hub(dataset_name, private=True )
-
-    def get_hf_sample(self, split:str="train", count:int=5):
-        samples = self.dataset[split].shuffle().select(range(count))
-        return samples
-
-        
-
 ################### GENERIC FUNCTIONS ###################
 from glob import glob
 from iesta.machine_learning.feature_extraction import get_features_df
-
 
 
 def load_training_data(methodology:str =METHODOLOGY.EACH)-> Dict[str,pd.DataFrame]:

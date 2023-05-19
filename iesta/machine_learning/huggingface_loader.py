@@ -7,40 +7,55 @@ from datasets.dataset_dict import Dataset, DatasetDict
 from iesta.machine_learning.dataloader import IESTAData
 import dataclasses
 import os
+import pandas as pd
 
 
 @dataclasses.dataclass
 class IESTAHuggingFace():
     iesta_dataset: IESTAData
+    _LABEL2ID_:ClassVar = {'ineffective':0, 'effective': 1} # add provocative and okay?
+    _ID2LABEL_:ClassVar = {0: 'ineffective', 1: 'effective'}
+
     _DATASET_NAME_DIC_: ClassVar = {
         "LABELLED": "debateorg_w_effect_for_{ideology}",
         "LABELLED_FOR_STYLE_CLASSIFIER": "debateorg_w_effect_for_{ideology}_subset",
         "PER_EFFECT": "debateorg_{effect}_args_for_{ideology}"
     }
-    def upload_w_labels(self, is_for_style_classifier:bool,  effect_label:str = "effect", text_col:str = "cleaned_text", prefix:str = "_effective_"):
+
+    @staticmethod
+    def _add_numeric_label(row, label2id):
+        row['label'] = label2id[row['effect']]
+        return row
+    
+    def upload_w_labels(self, is_for_style_classifier:bool, text_col:str = "cleaned_text", force_reload:bool=False):
         _KEY_  = "LABELLED_FOR_STYLE_CLASSIFIER" if is_for_style_classifier else "LABELLED"
         dataset_name= f"notaphoenix/{IESTAHuggingFace._DATASET_NAME_DIC_[_KEY_].format(ideology=self.iesta_dataset.ideology)}"
 
         try:
-            labelled_dataset = load_dataset(dataset_name, use_auth_token=True) 
+            if not force_reload:
+                labelled_dataset = load_dataset(dataset_name, use_auth_token=True) 
         except FileNotFoundError as e:
+            force_reload = True
             print("dataset was not found on hugging face.")
-            print("creating huggingface dataset from local dataset")
 
+        if force_reload:
+            print("(Re)creating huggingface dataset from local dataset")
             data_w_splits_df, _ = self.iesta_dataset.split_iesta_dataset_by_debate()
-            _df  = data_w_splits_df.copy()
+            _df: pd.DataFrame  = data_w_splits_df.copy()
 
             if is_for_style_classifier:
                 _df = _df[_df['is_for_eval_classifier'] == True].copy()
             else:
                 _df = _df[_df['is_for_eval_classifier'] == False].copy()
 
-            _df = _df.rename({effect_label:'label', text_col:'text'},axis='columns')
+            _df = _df.apply(IESTAHuggingFace._add_numeric_label, axis=1, args=(IESTAHuggingFace._LABEL2ID_,))
+
+            _df = _df.rename({ text_col:'text'},axis='columns')
             print(f"The columns are {_df.columns.tolist()}")
 
             data_splits: dict ={}
             for split,split_df in _df.groupby('split'):
-                data_splits[split] = Dataset.from_pandas(split_df[["text", "label"]])
+                data_splits[split] = Dataset.from_pandas(split_df[["text", "label"]], preserve_index=False)
                 
             labelled_dataset: DatasetDict = DatasetDict(data_splits)
             

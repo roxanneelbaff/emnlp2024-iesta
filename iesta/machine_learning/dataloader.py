@@ -67,13 +67,8 @@ def apply_add_prev_arg(row, original_df):
     return row
 
 
-def apply_binary_effect(row):
-    row['binary_effect'] = "ineffective" if row['effect'] != "effective" else row['effect']
-
-    return row
-
 def _get_rand_sample_indices(populaion,sample_num,random_state=42):
-        return sample_without_replacement(populaion, sample_num)
+        return sample_without_replacement(populaion, sample_num, random_state=random_state)
 
 def _get_sample_debates(df, split, sample_ratio:float = 0.3):
     debates = df[df['split'] == split]['debate_id'].unique().tolist()
@@ -84,40 +79,49 @@ def _get_sample_debates(df, split, sample_ratio:float = 0.3):
 ## END OF HELPERS
 @dataclasses.dataclass
 class METHODOLOGY:
-    EACH: ClassVar = "each"
+    EACH: ClassVar = "each" # Only this is used
     FIRST: ClassVar = "first"
     LAST: ClassVar = "last"
     CURRENT_PREVIOUS: ClassVar = "currentprevious"
     FIRST_LAST: ClassVar = "firstlast"
 
+@dataclasses.dataclass
+class LABELS:
+    EFFECTIVE: ClassVar = "effective"
+    INEFFECTIVE: ClassVar = "ineffective"
+    PROVOCOTIVE: ClassVar = "provocative"
+    OKAY: ClassVar = "okay"
+
+    ALL: ClassVar = [EFFECTIVE, INEFFECTIVE, PROVOCOTIVE, OKAY]
+    EFF_INEFF: ClassVar = [EFFECTIVE, INEFFECTIVE]
 
 @dataclasses.dataclass
 class IESTAData:
     ideology: str
     test_split: float = 0.3
-    abstract_effect: bool = False
     random_state: int = 2
 
     methodology: str = METHODOLOGY.EACH
 
+    keep_labels: list = dataclasses.field(default_factory=lambda: LABELS.EFF_INEFF )
+
     ## not to use
     data_df: pd.DataFrame = None
     pivot_df: pd.DataFrame = None
-    pivot_binary_effect: pd.DataFrame = None
-    evaluation_classfier_data_flag:int = dataloader.IESTAData._WITHOUT_EVAL_CLASSIFIER
+
+    #evaluation_classfier_data_flag:int = dataloader.IESTAData._WITHOUT_EVAL_CLASSIFIER
 
     _ALL_DATA_: ClassVar = 0
     _ONLY_EVAL_CLASSIFIER_: ClassVar =1
     _WITHOUT_EVAL_CLASSIFIER: ClassVar = 2
 
-    keep_labels = None #['effective', 'ineffective', 'provocative', 'okay']
+    
     
 
 
 
     def _get_out_files_path(self):
-        abstract_st = "_abstracted" if self.abstract_effect else ""
-        return os.path.join(properties.ROOT_PATH, "splitted", abstract_st, f"methodology_{self.methodology}")
+        return os.path.join(properties.ROOT_PATH, "splitted",  f"methodology_{self.methodology}")
 
     def split_iesta_dataset_by_debate(self): 
         """
@@ -126,20 +130,16 @@ class IESTAData:
                 if 0 get all data
                 if 1 get only 
         """ 
-        def _abstract_effect(row):
-            if row['effect'] != "effective":
-                row['effect'] = "ineffective"
-            return row
+        
 
         def _apply_add_evaluation_classifier_data(row, debates):
                 row['is_for_eval_classifier'] = True if row['debate_id'] in debates else False
                 return row 
 
 
-        abstract_st = "_abstracted" if self.abstract_effect else ""
         file_path = os.path.join(properties.ROOT_PATH,
                                  f"splitted_{self.ideology.lower()}"
-                                 f"_debate_arguments{abstract_st}"
+                                 f"_debate_arguments"
                                  f"_effect_test{self.test_split}"
                                  f"_random{self.random_state}.parquet")
         print(file_path)
@@ -147,87 +147,71 @@ class IESTAData:
 
         if os.path.isfile(file_path):
             data_w_splits_df = pd.read_parquet(file_path)
-            # GET data for the evaluation trainor for style
+            # GET data for the evaluation trainer for style
+            print("The file for data_w_splits_df already exists")
             
-            
-            if 'is_for_eval_classifier' not in data_w_splits_df.columns.tolist():
-                print("is_for_eval_classifier is not in the columns, adding it")
-                sample_size = round(len(data_w_splits_df[data_w_splits_df['split'] == 'training']['debate_id'].unique().tolist())*0.3)
 
-                training_debates_sample = _get_sample_debates(data_w_splits_df, 'training')
-                validation_debates_sample = _get_sample_debates(data_w_splits_df, 'validation')
-                test_debates_sample = _get_sample_debates(data_w_splits_df, 'test')
-                sample_debates = training_debates_sample + validation_debates_sample + test_debates_sample
-                data_w_splits_df = data_w_splits_df.apply(_apply_add_evaluation_classifier_data, axis=1, args=(sample_debates,))
-                data_w_splits_df.to_parquet(file_path)
-            if self.evaluation_classfier_data_flag == IESTAData._ONLY_EVAL_CLASSIFIER_:
-                data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == True]
-            elif self.evaluation_classfier_data_flag == IESTAData._WITHOUT_EVAL_CLASSIFIER:
-                data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == False] 
+        else: # File does not exists
 
-            if self.keep_labels is not None and len(self.keep_labels)>0:
-                data_w_splits_df = data_w_splits_df[data_w_splits_df['effect'].isin(self.keep_labels)] 
-            split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'], data_w_splits_df['effect'])
-            return data_w_splits_df, split_effect_pivot_df
+            processor = proc.Process()
+            df, _ = processor.get_ideology_based_voter_participant_df(self.ideology)
+            debates = df['debate_id'].unique()
 
-        processor = proc.Process()
-        df, _ = processor.get_ideology_based_voter_participant_df(self.ideology)
-        debates = df['debate_id'].unique()
+            training_debate, testval_debates = train_test_split(debates, test_size=self.test_split,
+                                                                random_state=self.random_state,
+                                                                shuffle=True)
+            validation_debates, test_debates = train_test_split(testval_debates, test_size=(1 / 3),
+                                                                random_state=self.random_state,
+                                                                shuffle=True)
 
-        training_debate, testval_debates = train_test_split(debates, test_size=self.test_split,
-                                                            random_state=self.random_state,
-                                                            shuffle=True)
-        validation_debates, test_debates = train_test_split(testval_debates, test_size=(1 / 3),
-                                                            random_state=self.random_state,
-                                                            shuffle=True)
+            splits_df_lst = []
+            splits_df_lst.append(pd.DataFrame({'debate_id': training_debate, 'split': ['training'] * len(training_debate)}))
+            splits_df_lst.append(
+                pd.DataFrame({'debate_id': validation_debates, 'split': ['validation'] * len(validation_debates)}))
+            splits_df_lst.append(pd.DataFrame({'debate_id': test_debates, 'split': ['test'] * len(test_debates)}))
 
-        splits_df_lst = []
-        splits_df_lst.append(pd.DataFrame({'debate_id': training_debate, 'split': ['training'] * len(training_debate)}))
-        splits_df_lst.append(
-            pd.DataFrame({'debate_id': validation_debates, 'split': ['validation'] * len(validation_debates)}))
-        splits_df_lst.append(pd.DataFrame({'debate_id': test_debates, 'split': ['test'] * len(test_debates)}))
+            debate_split_df = pd.concat(splits_df_lst)
 
-        debate_split_df = pd.concat(splits_df_lst)
+            data_w_splits_df = df.merge(right=debate_split_df, how='left', on='debate_id', suffixes=('', 'extra'))
 
-        data_w_splits_df = df.merge(right=debate_split_df, how='left', on='debate_id', suffixes=('', 'extra'))
+            # Validation
+            assert len(debate_split_df) == len(debates)
+            assert len(data_w_splits_df['debate_id'].unique()) == len(debates)
+            for split in ["training", "validation", "test"]:
+                assert len(data_w_splits_df[data_w_splits_df['split'] == split]['debate_id'].unique()) == \
+                    len(debate_split_df[debate_split_df['split'] == split])
 
-        # Validation
-        assert len(debate_split_df) == len(debates)
-        assert len(data_w_splits_df['debate_id'].unique()) == len(debates)
-        for split in ["training", "validation", "test"]:
-            assert len(data_w_splits_df[data_w_splits_df['split'] == split]['debate_id'].unique()) == \
-                   len(debate_split_df[debate_split_df['split'] == split])
+            data_w_splits_df.to_parquet(file_path)
 
+        if 'is_for_eval_classifier' not in data_w_splits_df.columns.tolist():
+            print("is_for_eval_classifier is not in the columns, adding it - used to have data for style classification")
 
-        # GET data for the evaluation trainor for style        
-        sample_size = round(len(data_w_splits_df[data_w_splits_df['split'] == 'training']['debate_id'].unique().tolist())*0.3)
-
-        training_debates_sample = _get_sample_debates(data_w_splits_df, 'training')
-        validation_debates_sample = _get_sample_debates(data_w_splits_df, 'validation')
-        test_debates_sample = _get_sample_debates(data_w_splits_df, 'test')
-        sample_debates = training_debates_sample + validation_debates_sample + test_debates_sample
-        data_w_splits_df = data_w_splits_df.apply(_apply_add_evaluation_classifier_data, axis=1, args=(sample_debates,))
+            training_debates_sample = _get_sample_debates(data_w_splits_df, 'training')
+            validation_debates_sample = _get_sample_debates(data_w_splits_df, 'validation')
+            test_debates_sample = _get_sample_debates(data_w_splits_df, 'test')
+            sample_debates = training_debates_sample + validation_debates_sample + test_debates_sample
+            data_w_splits_df = data_w_splits_df.apply(_apply_add_evaluation_classifier_data, axis=1, args=(sample_debates,))
+            data_w_splits_df.to_parquet(file_path)
         
-        if self.evaluation_classfier_data_flag == IESTAData._ONLY_EVAL_CLASSIFIER_:
-            data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == True]
-        elif self.evaluation_classfier_data_flag == IESTAData._WITHOUT_EVAL_CLASSIFIER:
-            data_w_splits_df = data_w_splits_df[data_w_splits_df['is_for_eval_classifier'] == False] 
+        if 'cleaned_text'  not in data_w_splits_df.columns.tolist():
+            print("Adding Cleaned text")
+            data_w_splits_df = data_w_splits_df.apply(_apply_clean_txt, axis=1, args=("argument",))
+            data_w_splits_df.to_parquet(file_path)
 
-
-        # Abstract
-        if self.abstract_effect:
-            data_w_splits_df = data_w_splits_df.apply(_abstract_effect, axis=1)
+        if self.keep_labels is not None and len(self.keep_labels)>0:
+            print(f"Before filtering effects {len(data_w_splits_df)}")
+            data_w_splits_df = data_w_splits_df[data_w_splits_df['effect'].isin(self.keep_labels)] 
+            print(f"After filtering effects {len(data_w_splits_df)}")
 
         split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'], data_w_splits_df['effect'])
-        print(split_effect_pivot_df)
-        data_w_splits_df.to_parquet(file_path)
+        
         return data_w_splits_df, split_effect_pivot_df
 
     def prepare_data_for_transformers(self):
         data_w_splits_df, split_effect_pivot_df = self.split_iesta_dataset_by_debate()
 
         result_df_lst = []
-        # abstract_st = "abstracted" if self.abstract_effect else ""
+        
         path = self._get_out_files_path()
 
         tqdm.pandas()
@@ -303,17 +287,11 @@ class IESTAData:
         df.to_parquet(df_file)
         return df, pd.crosstab(df['split'], df['effect']), df_file
 
-    def load(self, add_binary_effect:bool = True):
-        self.data_df, self.pivot_df, file_path = self.prepare_data_for_transformers()
-        
-        if add_binary_effect:
-            self.data_df = self.data_df.apply(dataloader.apply_binary_effect, axis=1)
-            self.pivot_binary_effect = pd.crosstab(self.data_df['split'], self.data_df['binary_effect'])
-        return self.data_df, self.pivot_df, file_path 
 
-    def get_training_data(self, add_binary_effect:bool = True):
-        _, _, _ = self.load(add_binary_effect=add_binary_effect)
-        abstract_st = "abstracted" if self.abstract_effect else ""
+
+    def get_training_data(self,):
+        self.data_df, self.pivot_df, _ = self.prepare_data_for_transformers()
+
         path = self._get_out_files_path()
         df_file = os.path.join(path, f"processed_data_{self.ideology.lower()}_training.parquet")
         training_data = self.data_df[self.data_df["split"]== "training"].copy()
@@ -327,36 +305,35 @@ from glob import glob
 from iesta.machine_learning.feature_extraction import get_features_df
 
 
-def load_training_data(methodology:str =METHODOLOGY.EACH)-> Dict[str,pd.DataFrame]:
+def load_training_data(ideology:str = "liberal", keep_labels=LABELS.EFF_INEFF, methodology:str =METHODOLOGY.EACH)-> Dict[str,pd.DataFrame]:
 
-    training_data = {}
-    for ideology in prop.IDEOLOLGY_LST:
-        dataloader = IESTAData(ideology=ideology, methodology=methodology)
+    
+    dataloader = IESTAData(ideology=ideology, keep_labels = keep_labels, methodology=methodology)
 
-        _, training_data_path = dataloader.get_training_data()
-        training_data[ideology] = pd.read_parquet(training_data_path)
+    _, training_data_path = dataloader.get_training_data()
+    training_data = pd.read_parquet(training_data_path)
+        
 
     return training_data
 
 
-def load_features_df():#->Dict[str,pd.DataFrame] Dict[str, Dict[str, pd.DataFrame]]):
+def load_training_features_df(ideology:str = "liberal", keep_labels=LABELS.EFF_INEFF):#->Dict[str,pd.DataFrame] Dict[str, Dict[str, pd.DataFrame]]):
     path = "../data/extracted_features/"
 
-    training_data = load_training_data(methodology =METHODOLOGY.EACH)
+    training_data = load_training_data(ideology=ideology, keep_labels=keep_labels, methodology =METHODOLOGY.EACH)
 
     feature_dfs = {}
 
-    for ideology in prop.IDEOLOLGY_LST:
-        style_features_path = glob(f"{path}/{ideology}_style-features_1000/*.parquet")
-        transformer_features_path = glob(f"{path}/{ideology}_transformer-features_100/*.parquet")
-
-        feature_dfs[ideology] = {}
-
-        empath_mpqa_df  = get_features_df(style_features_path, 1000, training_data[ideology])
-        transformers_based_features_df = get_features_df(transformer_features_path, 100, training_data[ideology])
+    
+    style_features_path = glob(f"{path}/{ideology}_style-features_1000/*.parquet")
+    transformer_features_path = glob(f"{path}/{ideology}_transformer-features_100/*.parquet")
 
 
-        difference = transformers_based_features_df.columns.difference(empath_mpqa_df.columns)
-        feature_dfs[ideology] = empath_mpqa_df.merge(transformers_based_features_df[difference], right_index=True, left_index=True)
+    empath_mpqa_df  = get_features_df(style_features_path, 1000, training_data)
+    transformers_based_features_df = get_features_df(transformer_features_path, 100, training_data)
+
+
+    difference = transformers_based_features_df.columns.difference(empath_mpqa_df.columns)
+    feature_dfs =  empath_mpqa_df.merge(transformers_based_features_df[difference], right_index=True, left_index=True)
         
     return training_data, feature_dfs

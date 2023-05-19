@@ -18,7 +18,8 @@ setup(
                       'empath>=0.89',
                       'tqdm',
                       'nlpaf>=2.6.0',
-                      'seaborn'
+                      'seaborn',
+                      'evaluate'
                       ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

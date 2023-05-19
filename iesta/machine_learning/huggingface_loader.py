@@ -27,9 +27,14 @@ class IESTAHuggingFace():
         row['label'] = label2id[row['effect']]
         return row
     
-    def upload_w_labels(self, is_for_style_classifier:bool, text_col:str = "cleaned_text", force_reload:bool=False):
+    def get_dataset_name(self, is_for_style_classifier:bool):
         _KEY_  = "LABELLED_FOR_STYLE_CLASSIFIER" if is_for_style_classifier else "LABELLED"
         dataset_name= f"notaphoenix/{IESTAHuggingFace._DATASET_NAME_DIC_[_KEY_].format(ideology=self.iesta_dataset.ideology)}"
+        return dataset_name
+
+    def upload_w_labels(self, is_for_style_classifier:bool, text_col:str = "cleaned_text", force_reload:bool=False):
+        
+        dataset_name= self.get_dataset_name(is_for_style_classifier)
 
         try:
             if not force_reload:

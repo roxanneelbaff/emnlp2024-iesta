@@ -1,6 +1,6 @@
 """textmining package that uses existing libraries"""
 
-__version__ = "0.3.0"
+#__version__ = "0.3.0"
 
 from pkg_resources import resource_filename
 import logging
@@ -31,3 +31,4 @@ f_handler.setFormatter(file_format)
 logger.addHandler(f_handler)
 
 logger.setLevel(logging.DEBUG)
+

@@ -11,7 +11,7 @@ from iesta.machine_learning.huggingface_loader import IESTAHuggingFace
 from nlpaf.transformers.text_classification import TextClassification
 from dotenv import load_dotenv, find_dotenv
 import argparse
-
+from huggingface_hub import login
 from configs import all_configs
 
 import random
@@ -35,7 +35,8 @@ def init_comet(experiment_key=None, name=None):
 def reset():
     torch.cuda.empty_cache()
     print(GPUtil.showUtilization())
-    _ = load_dotenv(find_dotenv())
+    found = load_dotenv(find_dotenv())
+    print(f"dotenv was {found}")
 
 
 def check_cuda():
@@ -52,12 +53,17 @@ def check_cuda():
 
 
 
-def run(config_key:str, labels= LABELS.EFF_INEFF):
-    config_dict = all_configs[config_key]
+def run_experiment(config_key:str, labels= LABELS.EFF_INEFF):
+    
     global experiment
     try:
-        experiment = init_comet(config_dict["output_dir"].replace("_", ""), config_dict["output_dir"])
         reset()
+  
+        login(os.getenv('HUGGINGFACE_TOKEN'), add_to_git_credential=True)
+        print(f"Running Experiments for key {config_key}")
+        config_dict = all_configs[config_key]
+        experiment = init_comet(config_dict["output_dir"].replace("_", ""), config_dict["output_dir"])
+        
         check_cuda()
         experiment.log_parameters(config_dict)
         data_object = IESTAData(ideology=config_dict["ideology"], keep_labels = labels)
@@ -91,8 +97,7 @@ def run(config_key:str, labels= LABELS.EFF_INEFF):
             hub_private_repo= True,
             report_to="comet_ml"  # comet_ml
             )
-        score = trainer.evaluate()
-        experiment.log_metric("test_score", score)
+        
 
         if config_dict["search_hp"]:
             hpsearch_bestrun = trainer.search_hyperparameters( n_trials= 5,
@@ -106,25 +111,28 @@ def run(config_key:str, labels= LABELS.EFF_INEFF):
                 print(f" {n}:{v}")
         else:
             trainer.train(push=True)
+            score = trainer.evaluate()
+            experiment.log_metric("test_score", score)
     
     finally:
         experiment.end()
 
 
 def main():
-    tracker = codecarbon.EmissionsTracker(log_level="error", tracking_mode="process", output_dir="codecarbon")
+   # tracker = codecarbon.EmissionsTracker(log_level="error", tracking_mode="process", output_dir="codecarbon")
 
     try:
+        #tracker.start()
         parser = argparse.ArgumentParser()
         parser.add_argument("-k", "--experimentkey", type=str)
         args = parser.parse_args()
 
-        run(args.experimentkey)
+        run_experiment(args.experimentkey)
     finally:
-        tracker.stop()
-        
+        #tracker.stop()
+        global experiment
         experiment.end()
         #print(f"FINAL EMMISION {tracker.final_emissions}")
-        
+
 if __name__ == "__main__":
     main()

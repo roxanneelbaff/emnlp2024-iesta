@@ -6,9 +6,11 @@ def optuna_hp_space(trial):
 
 
 all_configs = {}
+_LIBERAL_SC_ = "style_evaluator_liberal"
 
-_CONSERVATIVE_EVALUATOR = "style_evaluator_conservative_2952023"
-_LIBERAL_EVALUATOR_ = "style_evaluator_liberal_2952023"
+_CONSERVATIVE_EVALUATOR = "style_evaluator_conservative_3052023"
+_LIBERAL_EVALUATOR_ = "style_evaluator_liberal_3052023"
+_LIBERAL_EVALUATOR_HS_ = "style_evaluator_liberal_hs_3052023"
 
 all_configs[_LIBERAL_EVALUATOR_] = {
     "ideology": "liberal",
@@ -24,9 +26,28 @@ all_configs[_LIBERAL_EVALUATOR_] = {
     "evaluation_strategy": "epoch",
     "save_strategy": "epoch",
     "is_for_style_classifier": True,
-    "push_to_hub": False,
+    "push_to_hub": True,
     "search_hp":False,
     "optuna_hp_func": None, #optuna_hp_space
+}
+
+all_configs[_LIBERAL_EVALUATOR_HS_] = {
+    "ideology": "liberal",
+    "undersample":True,
+    "pretrained_model_name":"distilbert-base-uncased", #"microsoft/deberta-base",
+    "uncase": True,
+    "output_dir":_LIBERAL_EVALUATOR_HS_,
+    "learning_rate": 4e-6,
+    "per_device_train_batch_size":8,
+    "per_device_eval_batch_size": 8,
+    "num_train_epochs": 10,
+    "weight_decay": 0.01,
+    "evaluation_strategy": "epoch",
+    "save_strategy": "epoch",
+    "is_for_style_classifier": True,
+    "push_to_hub": True,
+    "search_hp":True,
+    "optuna_hp_func": optuna_hp_space
 }
 
 

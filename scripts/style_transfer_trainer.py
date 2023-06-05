@@ -24,16 +24,17 @@ def init_comet(experiment_key=None, name=None):
     experiment_key = experiment_key[0:49] if len(experiment_key)>50 else experiment_key
     global experiment
     experiment = Experiment(
-        api_key="ZGtUiFA68BqsXMlFfogUwnIfD",
-        project_name="iesta",
-        workspace="roxanneelbaff",
-        experiment_key = experiment_key)
+        api_key=os.getenv("COMET_API_KEY"),
+        project_name=os.getenv("COMET_PROJECT_NAME"),
+        workspace=os.getenv("COMET_WORKSPACE"),
+        experiment_key=experiment_key)
     experiment.set_name(name)
     return experiment
     
 
 def reset():
     torch.cuda.empty_cache()
+    torch.backends.cuda.max_split_size_mb = 512
     print(GPUtil.showUtilization())
     found = load_dotenv(find_dotenv())
     print(f"dotenv was {found}")
@@ -41,7 +42,8 @@ def reset():
 
 def check_cuda():
     use_cuda = torch.cuda.is_available()
-    
+    #CUDA_VISIBLE_DEVICES
+
     if use_cuda:
         print('__CUDNN VERSION:', torch.backends.cudnn.version())
         print('__Number CUDA Devices:', torch.cuda.device_count())
@@ -50,11 +52,7 @@ def check_cuda():
     else:
         print('no cuda')
 
-
-
-
-def run_experiment(config_key:str, labels= LABELS.EFF_INEFF):
-    
+def run_experiment(config_key:str):
     global experiment
     try:
         reset()
@@ -62,11 +60,12 @@ def run_experiment(config_key:str, labels= LABELS.EFF_INEFF):
         login(os.getenv('HUGGINGFACE_TOKEN'), add_to_git_credential=True)
         print(f"Running Experiments for key {config_key}")
         config_dict = all_configs[config_key]
-        experiment = init_comet(config_dict["output_dir"].replace("_", ""), config_dict["output_dir"])
+        print(config_dict["output_dir"].split("/")[-1].replace("_", ""))
+        experiment = init_comet(config_dict["output_dir"].split("/")[-1].replace("_", ""), config_dict["output_dir"])
         
         check_cuda()
         experiment.log_parameters(config_dict)
-        data_object = IESTAData(ideology=config_dict["ideology"], keep_labels = labels)
+        data_object = IESTAData(ideology=config_dict["ideology"], keep_labels = LABELS.EFF_INEFF)
         huggingface_dataset = IESTAHuggingFace(data_object)
 
         dataset_name = huggingface_dataset.get_dataset_name(is_for_style_classifier=config_dict["is_for_style_classifier"])
@@ -110,7 +109,7 @@ def run_experiment(config_key:str, labels= LABELS.EFF_INEFF):
             for n, v in hpsearch_bestrun.hyperparameters.items():
                 print(f" {n}:{v}")
         else:
-            trainer.train(push=True)
+            trainer.train()
             score = trainer.evaluate()
             experiment.log_metric("test_score", score)
     

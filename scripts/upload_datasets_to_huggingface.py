@@ -1,7 +1,7 @@
 from iesta.machine_learning.dataloader import IESTAData, LABELS
 from iesta.machine_learning.huggingface_loader import IESTAHuggingFace
 
-conservative_data_obj = IESTAData(ideology="conservative", keep_labels = LABELS.EFF_INEFF)
+conservative_data_obj = IESTAData(ideology="conservative", keep_labels = LABELS.EFF_INEFF, )
 conservative_hf = IESTAHuggingFace(conservative_data_obj)
 conservative_w_effect = conservative_hf.upload_w_labels(is_for_style_classifier=False)
 conservative_w_effect_for_sc = conservative_hf.upload_w_labels(is_for_style_classifier=True)

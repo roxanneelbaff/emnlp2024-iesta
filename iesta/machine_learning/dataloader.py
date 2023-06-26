@@ -131,11 +131,9 @@ class IESTAData:
                 if 1 get only 
         """ 
         
-
         def _apply_add_evaluation_classifier_data(row, debates):
-                row['is_for_eval_classifier'] = True if row['debate_id'] in debates else False
-                return row 
-
+            row['is_for_eval_classifier'] = True if row['debate_id'] in debates else False
+            return row 
 
         file_path = os.path.join(properties.ROOT_PATH,
                                  f"splitted_{self.ideology.lower()}"
@@ -149,10 +147,8 @@ class IESTAData:
             data_w_splits_df = pd.read_parquet(file_path)
             # GET data for the evaluation trainer for style
             print("The file for data_w_splits_df already exists")
-            
 
         else: # File does not exists
-
             processor = proc.Process()
             df, _ = processor.get_ideology_based_voter_participant_df(self.ideology)
             debates = df['debate_id'].unique()

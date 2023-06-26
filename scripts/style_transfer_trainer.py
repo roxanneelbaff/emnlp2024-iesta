@@ -15,6 +15,7 @@ from huggingface_hub import login
 from configs import all_configs
 
 import random
+import gc
 
 global experiment
 def init_comet(experiment_key=None, name=None):
@@ -33,8 +34,9 @@ def init_comet(experiment_key=None, name=None):
     
 
 def reset():
+    #gc.collect() 
     torch.cuda.empty_cache()
-    torch.backends.cuda.max_split_size_mb = 512
+    torch.backends.cuda.max_split_size_mb = 128
     print(GPUtil.showUtilization())
     found = load_dotenv(find_dotenv())
     print(f"dotenv was {found}")
@@ -52,7 +54,8 @@ def check_cuda():
     else:
         print('no cuda')
 
-def run_experiment(config_key:str):
+
+def run_experiment(config_key: str):
     global experiment
     try:
         reset()
@@ -69,7 +72,7 @@ def run_experiment(config_key:str):
         huggingface_dataset = IESTAHuggingFace(data_object)
 
         dataset_name = huggingface_dataset.get_dataset_name(is_for_style_classifier=config_dict["is_for_style_classifier"])
-
+        print(dataset_name)
         trainer = TextClassification(
             dataset_name,
             id2label=  IESTAHuggingFace._ID2LABEL_,

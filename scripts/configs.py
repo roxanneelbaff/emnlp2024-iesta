@@ -10,8 +10,8 @@ _LIBERAL_SC_ = "style_evaluator_liberal"
 
 _CONSERVATIVE_EVALUATOR = "style_evaluator_conservative_3052023"
 _LIBERAL_EVALUATOR_ = "style_evaluator_liberal_3052023"
-_LIBERAL_EVALUATOR1_ = "style_evaluator_liberal1"
-
+_LIBERAL_EVALUATOR1_ = "style_evaluator_longformer"
+_LIBERRAL_BB_ = "style_evaluator_liberal_bb"
 _LIBERAL_EVALUATOR_HS_ = "style_evaluator_liberal_hs_3052023"
 
 all_configs[_LIBERAL_EVALUATOR_] = {
@@ -74,7 +74,6 @@ all_configs[_CONSERVATIVE_EVALUATOR] = {
 }
 
 all_configs[_LIBERAL_EVALUATOR1_] = {
-    #"dataset_name": "notaphoenix/shakespeare_dataset",
     "ideology": "liberal",
     "undersample": True,
     "pretrained_model_name": "allenai/longformer-base-4096", #"microsoft/deberta-base",
@@ -92,4 +91,27 @@ all_configs[_LIBERAL_EVALUATOR1_] = {
     "hub_private_repo": False,
     "optuna_hp_func": None,
     "is_for_style_classifier": True
+}#
+#
+
+all_configs[_LIBERRAL_BB_] = {
+    "ideology": "liberal",
+    "undersample": True,
+    "pretrained_model_name": "google/bigbird-roberta-base",#"allenai/longformer-base-4096", #"microsoft/deberta-base",
+    "uncase": False,
+    "output_dir": f"{_LIBERRAL_BB_}",
+    "learning_rate": 2e-6,
+    "per_device_train_batch_size" :8,
+    "per_device_eval_batch_size": 8,
+    "num_train_epochs": 12,
+    "weight_decay": 0.01,
+    "evaluation_strategy": "epoch",
+    "save_strategy": "epoch",
+    "push_to_hub": False,
+    "search_hp": False,
+    "hub_private_repo": False,
+    "optuna_hp_func": None,
+    "is_for_style_classifier": True
 }
+
+# google/bigbird-roberta-base

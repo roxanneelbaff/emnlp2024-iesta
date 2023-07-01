@@ -176,7 +176,7 @@ class IESTAData:
             for split in ["training", "validation", "test"]:
                 assert len(data_w_splits_df[data_w_splits_df['split'] == split]['debate_id'].unique()) == \
                     len(debate_split_df[debate_split_df['split'] == split])
-
+            ## Remove DISMISSED text
             data_w_splits_df.to_parquet(file_path)
 
         if 'is_for_eval_classifier' not in data_w_splits_df.columns.tolist():

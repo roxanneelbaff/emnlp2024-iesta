@@ -36,7 +36,7 @@ def init_comet(experiment_key=None, name=None):
 def reset():
     #gc.collect() 
     torch.cuda.empty_cache()
-    torch.backends.cuda.max_split_size_mb = 128
+    #torch.backends.cuda.max_split_size_mb = 128
     print(GPUtil.showUtilization())
     found = load_dotenv(find_dotenv())
     print(f"dotenv was {found}")
@@ -73,6 +73,12 @@ def run_experiment(config_key: str):
 
         dataset_name = huggingface_dataset.get_dataset_name(is_for_style_classifier=config_dict["is_for_style_classifier"])
         print(dataset_name)
+
+        """
+            "optimizer": "adamw_hf",
+    "tokenizer_max_length": 1024,
+    "tokenizer_padding": True
+    """
         trainer = TextClassification(
             dataset_name,
             id2label=  IESTAHuggingFace._ID2LABEL_,
@@ -90,17 +96,23 @@ def run_experiment(config_key: str):
             learning_rate= config_dict["learning_rate"],#5e-6,
             per_device_train_batch_size=config_dict["per_device_train_batch_size"],
             per_device_eval_batch_size= config_dict["per_device_eval_batch_size"],
-            num_train_epochs= config_dict["num_train_epochs"],
-            weight_decay= config_dict["weight_decay"],
+            num_train_epochs=config_dict["num_train_epochs"],
+            weight_decay=config_dict["weight_decay"],
             evaluation_strategy= config_dict["evaluation_strategy"],
-            save_strategy= config_dict["save_strategy"],
+            save_strategy=config_dict["save_strategy"],
             load_best_model_at_end= True,
-            push_to_hub= config_dict["push_to_hub"],
-            hub_private_repo= True,
-            report_to="comet_ml"  # comet_ml
+            push_to_hub=config_dict["push_to_hub"],
+            hub_private_repo=True,
+            optimizer=config_dict["optimizer"],
+            tokenizer_max_length=config_dict["tokenizer_max_length"],
+            tokenizer_padding=config_dict["tokenizer_padding"],
+            tokenizer_special_tokens=config_dict["tokenizer_special_tokens"],
+            report_to="comet_ml",  # comet_ml##
+            is_fp16=config_dict["is_fp16"],
+            gradient_accumulation_steps=config_dict["gradient_accumulation_steps"],
+            gradient_checkpointing=config_dict["gradient_checkpointing"]
             )
         
-
         if config_dict["search_hp"]:
             hpsearch_bestrun = trainer.search_hyperparameters( n_trials= 5,
                                         run_on_subset= False,

@@ -11,8 +11,11 @@ _LIBERAL_SC_ = "style_evaluator_liberal"
 _CONSERVATIVE_EVALUATOR = "style_evaluator_conservative_3052023"
 _LIBERAL_EVALUATOR_ = "style_evaluator_liberal_3052023"
 _LIBERAL_EVALUATOR1_ = "style_evaluator_longformer"
-_LIBERRAL_BB_ = "style_evaluator_liberal_bb"
+_LIBERRAL_BB_ = "style_evaluator_liberal_bigbird"
 _LIBERAL_EVALUATOR_HS_ = "style_evaluator_liberal_hs_3052023"
+
+
+_liberal_deberta_ = "style_evaluator_liberal_debertav3"
 
 all_configs[_LIBERAL_EVALUATOR_] = {
     "ideology": "liberal",
@@ -94,24 +97,36 @@ all_configs[_LIBERAL_EVALUATOR1_] = {
 }#
 #
 
-all_configs[_LIBERRAL_BB_] = {
+all_configs[_liberal_deberta_] = {
     "ideology": "liberal",
     "undersample": True,
-    "pretrained_model_name": "google/bigbird-roberta-base",#"allenai/longformer-base-4096", #"microsoft/deberta-base",
+    "pretrained_model_name": "microsoft/deberta-v3-base",# reformer-crime-and-punishment "google/google/bigbird-roberta-base"allenai/longformer-base-4096", #"microsoft/deberta-base",
     "uncase": False,
-    "output_dir": f"{_LIBERRAL_BB_}",
-    "learning_rate": 2e-6,
-    "per_device_train_batch_size" :8,
+    "output_dir": f"{_liberal_deberta_}",
+    "learning_rate": 2e-6/4.0,
+    "per_device_train_batch_size": 8,
     "per_device_eval_batch_size": 8,
-    "num_train_epochs": 12,
+    "num_train_epochs": 10,
     "weight_decay": 0.01,
     "evaluation_strategy": "epoch",
     "save_strategy": "epoch",
-    "push_to_hub": False,
+    "push_to_hub": True,
     "search_hp": False,
-    "hub_private_repo": False,
+    "hub_private_repo": True,
     "optuna_hp_func": None,
-    "is_for_style_classifier": True
+    "is_for_style_classifier": True,
+    "optimizer": "adamw_hf",
+    "tokenizer_max_length": 1024,
+    "tokenizer_padding": True,
+    "tokenizer_special_tokens": {'pad_token': '[EOS]'},
+    "is_fp16": True,
+    "gradient_accumulation_steps": 4,
+    "gradient_checkpointing":True
 }
 
 # google/bigbird-roberta-base
+
+
+## optim (`str` or [`training_args.OptimizerNames`], *optional*, defaults to `"adamw_hf"`):
+  #          The optimizer to use: adamw_hf, adamw_torch, adamw_torch_fused, adamw_apex_fused, adamw_anyprecision or
+  #          adafactor.

@@ -53,9 +53,9 @@ def check_cuda():
         print('no cuda')
 
 
-def run_experiment(config_key: str):
+def run_experiment(config_key: str, id_: int = 1):
     config_dict = all_configs[config_key]
-    run_id = config_dict["output_dir"].split("/")[-1].replace("_", "") + "2"
+    run_id = config_dict["output_dir"].split("/")[-1].replace("_", "") + str(id_)
     experiment = TextClassificationWAccelerate.get_experiment(run_id)
     try:
         reset()
@@ -118,7 +118,7 @@ def run_experiment(config_key: str):
         """
 
         trainer.train()
-        score = trainer.evaluate()
+        #score = trainer.evaluate()
     
     finally:
         experiment.end()
@@ -131,9 +131,10 @@ def main():
         #tracker.start()
         parser = argparse.ArgumentParser()
         parser.add_argument("-k", "--experimentkey", type=str)
+        parser.add_argument("-i", "--id", type=int)
         args = parser.parse_args()
 
-        run_experiment(args.experimentkey)
+        run_experiment(args.experimentkey, args.id)
     finally:
         pass
 

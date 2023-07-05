@@ -16,7 +16,11 @@ import cleantext
 import iesta.properties as prop  
 from tqdm import tqdm
 from sklearn.utils.random import sample_without_replacement
+import re
 
+import pandas as pd
+from ydata_profiling import ProfileReport
+from ydata_profiling import ProfileReport
 ### HELPERS
 
 def clean_argument(arg):
@@ -118,17 +122,22 @@ class IESTAData:
     def _get_out_files_path(self):
         return os.path.join(properties.ROOT_PATH, "splitted",  f"methodology_{self.methodology}")
 
-    def split_iesta_dataset_by_debate(self): 
+    
+    def split_iesta_dataset_by_debate(self, force_reload: bool = False): 
         """
         parammeters:
             evaluation_classfier_data_flag: int 
                 if 0 get all data
                 if 1 get only 
         """ 
-        
+
         def _apply_add_evaluation_classifier_data(row, debates):
             row['is_for_eval_classifier'] = True if row['debate_id'] in debates else False
             return row 
+        
+        def _apply_no_punc( row, col):
+            row["text_no_punc"] = re.sub(r'[^\w\s]', '', row[col])
+            return row
 
         file_path = os.path.join(properties.ROOT_PATH,
                                  f"splitted_{self.ideology.lower()}"
@@ -138,7 +147,7 @@ class IESTAData:
         print(file_path)
         tqdm.pandas()
 
-        if os.path.isfile(file_path):
+        if os.path.isfile(file_path) and not force_reload:
             data_w_splits_df = pd.read_parquet(file_path)
             # GET data for the evaluation trainer for style
             print("The file for data_w_splits_df already exists")
@@ -146,6 +155,34 @@ class IESTAData:
         else: # File does not exists
             processor = proc.Process()
             df, _ = processor.get_ideology_based_voter_participant_df(self.ideology)
+            print(f"Original df len: {len(df)}")
+            if self.keep_labels is not None and len(self.keep_labels)>0:
+                print(f"Before filtering effects {len(df)}")
+                df = df[df['effect'].isin(self.keep_labels)]
+                print(f"After filtering effects {len(df)}")
+
+            if 'cleaned_text' not in df.columns.tolist():
+                print("Adding Cleaned text")
+                df = df.apply(_apply_clean_txt, axis=1, args=("argument",))
+
+            with open("data/dismiss_text.txt", "r") as dismissedf:
+                dissmiss_arr = list(pd.Series(dismissedf.read().splitlines()).str.lower())
+                dissmiss_arr = list(set([re.sub(r'[^\w\s]', '', x) for x in dissmiss_arr]))
+            
+            df = df.apply(_apply_no_punc, axis=1, args=("argument",))
+            df = df[~df["text_no_punc"].str.lower().isin(dissmiss_arr)]
+            df = df[~df["cleaned_text"].str.lower().isin(dissmiss_arr)]
+            print(f"After filtering dismissed df len: {len(df)}")
+            print(f"Profiling data")
+            
+            df["text_low"] = df["cleaned_text"].str.lower()
+            profile = ProfileReport(df[["text_low"]], title="Profiling Report")
+            profile.to_file(f"data/profilers/{self.ideology}_all_data_low.html")
+
+            profile = ProfileReport(df[["cleaned_text"]], title="Profiling Report")
+            profile.to_file(f"data/profilers/{self.ideology}_all_data.html")
+            print(f"End of profiling")
+    
             debates = df['debate_id'].unique()
 
             training_debate, testval_debates = train_test_split(debates, test_size=self.test_split,
@@ -172,7 +209,6 @@ class IESTAData:
                 assert len(data_w_splits_df[data_w_splits_df['split'] == split]['debate_id'].unique()) == \
                     len(debate_split_df[debate_split_df['split'] == split])
             ## Remove DISMISSED text
-            data_w_splits_df.to_parquet(file_path)
 
         if 'is_for_eval_classifier' not in data_w_splits_df.columns.tolist():
             print("is_for_eval_classifier is not in the columns, adding it - used to have data for style classification")
@@ -182,20 +218,18 @@ class IESTAData:
             test_debates_sample = _get_sample_debates(data_w_splits_df, 'test')
             sample_debates = training_debates_sample + validation_debates_sample + test_debates_sample
             data_w_splits_df = data_w_splits_df.apply(_apply_add_evaluation_classifier_data, axis=1, args=(sample_debates,))
-            data_w_splits_df.to_parquet(file_path)
-        
-        if 'cleaned_text'  not in data_w_splits_df.columns.tolist():
-            print("Adding Cleaned text")
-            data_w_splits_df = data_w_splits_df.apply(_apply_clean_txt, axis=1, args=("argument",))
-            data_w_splits_df.to_parquet(file_path)
+        data_w_splits_df.to_parquet(file_path)
 
-        if self.keep_labels is not None and len(self.keep_labels)>0:
-            print(f"Before filtering effects {len(data_w_splits_df)}")
-            data_w_splits_df = data_w_splits_df[data_w_splits_df['effect'].isin(self.keep_labels)] 
-            print(f"After filtering effects {len(data_w_splits_df)}")
+        for g, _df in data_w_splits_df.groupby(["is_for_eval_classifier"]):
+            print(f"\n{g}")
+            profile = ProfileReport(_df, title=f"PR {self.ideology} is_for_eval_classifier {g}")
+            profile.to_file(f"data/profilers/{self.ideology}_for_eval_classifier-{g}.html")
+            print(pd.crosstab(_df['split'], _df['effect']))
 
-        split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'], data_w_splits_df['effect'])
-        
+        split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'],
+                                            data_w_splits_df['effect'])
+        print(f"All\n{split_effect_pivot_df}")
+
         return data_w_splits_df, split_effect_pivot_df
 
     def prepare_data_for_transformers(self):

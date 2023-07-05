@@ -216,8 +216,7 @@ class Process():
             dataset = self.get_voter_particpant_df(df)
 
             arguments_dataset, not_found_args_df = self.get_args_w_main_effect_df(dataset, flatten=True)
-            arguments_dataset.to_parquet(file_path,
-                                                   index=False)
+            arguments_dataset.to_parquet(file_path, index=False)
 
             not_found_args_df.dropna(inplace=True)
             not_found_args_df.to_parquet(properties.MISSING_ARGS_FILE.format(ideology.lower()))

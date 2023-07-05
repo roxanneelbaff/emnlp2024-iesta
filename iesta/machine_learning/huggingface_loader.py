@@ -13,6 +13,8 @@ import pandas as pd
 @dataclasses.dataclass
 class IESTAHuggingFace():
     iesta_dataset: IESTAData
+    reload_preprocess: bool = False
+
     _LABEL2ID_:ClassVar = {'ineffective':0, 'effective': 1} # add provocative and okay?
     _ID2LABEL_:ClassVar = {0: 'ineffective', 1: 'effective'}
 
@@ -45,22 +47,24 @@ class IESTAHuggingFace():
 
         if force_reload:
             print("(Re)creating huggingface dataset from local dataset")
-            data_w_splits_df, _ = self.iesta_dataset.split_iesta_dataset_by_debate()
-            _df: pd.DataFrame  = data_w_splits_df.copy()
+            data_w_splits_df, _ = self.iesta_dataset.split_iesta_dataset_by_debate(force_reload=self.reload_preprocess)
+            _df: pd.DataFrame = data_w_splits_df.copy()
 
             if is_for_style_classifier:
-                _df = _df[_df['is_for_eval_classifier'] == True].copy()
+                _df = _df[_df['is_for_eval_classifier']==True].copy()
             else:
-                _df = _df[_df['is_for_eval_classifier'] == False].copy()
+                _df = _df[_df['is_for_eval_classifier']==False].copy()
 
-            _df = _df.apply(IESTAHuggingFace._add_numeric_label, axis=1, args=(IESTAHuggingFace._LABEL2ID_,))
+            _df = _df.apply(IESTAHuggingFace._add_numeric_label,
+                            axis=1,
+                            args=(IESTAHuggingFace._LABEL2ID_,))
 
             _df = _df.rename({ text_col:'text'},axis='columns')
             print(f"The columns are {_df.columns.tolist()}")
 
             data_splits: dict ={}
-            for split,split_df in _df.groupby('split'):
-                data_splits[split] = Dataset.from_pandas(split_df[["text", "label"]], preserve_index=False)
+            for split, split_df in _df.groupby('split'):
+                data_splits[split] = Dataset.from_pandas(split_df[["text", "label"]], preserve_index=True)
                 
             labelled_dataset: DatasetDict = DatasetDict(data_splits)
             

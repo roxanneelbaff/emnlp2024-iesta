@@ -76,8 +76,6 @@ all_configs[_CONSERVATIVE_EVALUATOR] = {
     "optuna_hp_func": None, #optuna_hp_space
 }
 
-#
-
 all_configs[_LIBERAL_EVALUATOR1_] = {
     "ideology": "liberal",
     "undersample": True,

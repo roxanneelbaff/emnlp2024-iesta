@@ -24,14 +24,15 @@ import torch
 from nlpaf.util import helpers
 from torch.utils.data.dataloader import DataLoader
 from evaluate import EvaluationModule
-from comet_ml import Experiment
 import os
 from tqdm import tqdm
 import hashlib
 from accelerate.logging import get_logger
 import datasets
-import transfomers
 import logging
+import shutil 
+import transformers
+from glob import glob
 
 @dataclasses.dataclass
 class TextClassificationWAccelerate:
@@ -118,11 +119,11 @@ class TextClassificationWAccelerate:
         return
 
     # New Code #
-    def load_training_checkpoint(model, load_dir, tag=None, **kwargs):
+    def load_training_checkpoint(self, load_dir, tag=None, **kwargs):
         """Utility function for checkpointing model + optimizer dictionaries
         The main purpose for this is to be able to resume training from that instant again
         """
-        _, checkpoint_state_dict = model.load_checkpoint(load_dir, tag=tag, **kwargs)
+        _, checkpoint_state_dict = self.model.load_checkpoint(load_dir, tag=tag, **kwargs)
         epoch = checkpoint_state_dict["epoch"]
         last_global_step = checkpoint_state_dict["last_global_step"]
         del checkpoint_state_dict
@@ -158,7 +159,7 @@ class TextClassificationWAccelerate:
         self.set_dataset()
 
         self.tokenized_datasets = None
-        self.train_dataloader, self.eval_dataloader = self.get_dataloaders()
+        self.train_dataloader, self.eval_dataloader, self.test_dataloader = self.get_dataloaders()
 
         self.evaluator: EvaluationModule = evaluate.load(self.metric)
         
@@ -288,118 +289,148 @@ class TextClassificationWAccelerate:
             drop_last=(self.accelerator.mixed_precision == "fp8"),
         )
 
-        return train_dataloader, eval_dataloader
-
-    def train(self):
-        # Initialize accelerator
-        # Sample hyper-parameters for learning rate, batch size, seed and a few other HPs
-        lr = self.learning_rate
-        num_epochs = self.num_train_epochs
-        extra_params = {"average": self.averaged_metric} if self.averaged_metric is not None else {}
-        self.accelerator.print(f"extra_params: {extra_params}")
-        
-        # Instantiate the model (we build the model here so that the seed also control new weights initialization)
-
-        # We could avoid this line since the accelerator is set with `device_placement=True` (default value).
-        # Note that if you are placing tensors on devices manually, this line absolutely needs to be before the optimizer
-        # creation otherwise training will not work on TPU (`accelerate` will kindly throw an error to make us aware of that).
-        self.model = self.model.to(self.accelerator.device)
-        self.accelerator.print("*************** after setting model to accelerate **************")
-        helpers.print_gpu_utilization()
-        # Instantiate optimizer
-        optimizer = AdamW(params=self.model.parameters(), lr=lr)
-
-        # Instantiate scheduler
-        lr_scheduler = get_linear_schedule_with_warmup(
-            optimizer=optimizer,
-            num_warmup_steps=50,
-            num_training_steps=(len(self.train_dataloader) * num_epochs) // self.gradient_accumulation_steps,
+        test_dataloader: DataLoader = DataLoader(
+            self.tokenized_datasets["test"],
+            shuffle=False,
+            collate_fn=self._collate_fn,
+            batch_size=TextClassificationWAccelerate.EVAL_BATCH_SIZE,
+            drop_last=(self.accelerator.mixed_precision == "fp8"),
         )
 
-        # Prepare everything
-        # There is no specific order to remember, we just need to unpack the objects in the same order we gave them to the
-        # prepare method.
-
-        self.model, optimizer, self.train_dataloader, self.eval_dataloader, lr_scheduler = self.accelerator.prepare(
-            self.model,
-            optimizer,
-            self.train_dataloader,
-            self.eval_dataloader,
-            lr_scheduler
-            )
-        best_metric = None
-        best_metric_checkpoint = None
-        # Now we train the model
-        for epoch in range(num_epochs):
-            helpers.print_gpu_utilization()
-
-            self.accelerator.print(f"epoch {epoch} training...")
-            self.model.train()
-            for step, batch in enumerate(tqdm(self.train_dataloader)):
-                # We could avoid this line since we set the accelerator with `device_placement=True`.
-                batch.to(self.accelerator.device)
+        return train_dataloader, eval_dataloader, test_dataloader
+    
+    # New Code #
+    def evaluate(self,  split_dataloader, extra_params):
+        self.model.eval()
+        for _, batch in enumerate(tqdm(split_dataloader)):
+            # We could avoid this line since we set the accelerator with `device_placement=True`.
+            batch.to(self.accelerator.device)
+            with torch.no_grad():
                 outputs = self.model(**batch)
-                loss = outputs.loss
-                loss = loss / self.gradient_accumulation_steps
-                self.accelerator.backward(loss)
-                if step % self.gradient_accumulation_steps == 0:
-                    optimizer.step()
-                    lr_scheduler.step()
-                    optimizer.zero_grad()
-
-            self.accelerator.print(f"epoch {epoch} evaluating...")
-            self.model.eval()
-            for step, batch in enumerate(tqdm(self.eval_dataloader)):
-                # We could avoid this line since we set the accelerator with `device_placement=True`.
-                batch.to(self.accelerator.device)
-                with torch.no_grad():
-                    outputs = self.model(**batch)
-                predictions = outputs.logits.argmax(dim=-1)
-                predictions, references = self.accelerator.gather_for_metrics(
-                    (predictions, batch["labels"])
-                    )
-                self.evaluator.add_batch(
-                    predictions=predictions,
-                    references=references,
+            predictions = outputs.logits.argmax(dim=-1)
+            predictions, references = self.accelerator.gather_for_metrics(
+                (predictions, batch["labels"])
                 )
+            self.evaluator.add_batch(
+                predictions=predictions,
+                references=references,
+            )
 
-            eval_metric = self.evaluator.compute(predictions=None,
-                                                 references=None,
-                                                 **extra_params)
+        eval_metric = self.evaluator.compute(predictions=None,
+                                             references=None,
+                                             **extra_params)
+        return eval_metric
+    
+    def train(self):
+        try:
+            # Initialize accelerator
+            # Sample hyper-parameters for learning rate, batch size, seed and a few other HPs
+            lr = self.learning_rate
+            num_epochs = self.num_train_epochs
+            extra_params = {"average": self.averaged_metric} if self.averaged_metric is not None else {}
+            self.accelerator.print(f"extra_params: {extra_params}")
+            
+            # Instantiate the model (we build the model here so that the seed also control new weights initialization)
 
-            self.accelerator.print(f"epoch {epoch}:", eval_metric)
-            #mertic_extra_str = "" if extra_params is None or len(extra_params)==0 else (('-'.join([x for x in extra_params.values()]))+"_") 
-            try:
-                if self.experiment is not None:
-                    self.experiment.log_metrics(eval_metric,
-                                                epoch=epoch)
-            except Exception as e:
-                self.accelerator.print("couldnt log metric", e)
-            if self.save_strategy == "epoch":
-                _dir = f"epoch_{epoch}"
-                if self.output_dir is not None:
-                    _dir = os.path.join(self.output_dir, _dir)
-                self.accelerator.save_state(_dir)
+            # We could avoid this line since the accelerator is set with `device_placement=True` (default value).
+            # Note that if you are placing tensors on devices manually, this line absolutely needs to be before the optimizer
+            # creation otherwise training will not work on TPU (`accelerate` will kindly throw an error to make us aware of that).
+            self.model = self.model.to(self.accelerator.device)
+            self.accelerator.print("*************** after setting model to accelerate **************")
+            helpers.print_gpu_utilization()
+            # Instantiate optimizer
+            optimizer = AdamW(params=self.model.parameters(), lr=lr)
 
+            # Instantiate scheduler
+            lr_scheduler = get_linear_schedule_with_warmup(
+                optimizer=optimizer,
+                num_warmup_steps=50,
+                num_training_steps=(len(self.train_dataloader) * num_epochs) // self.gradient_accumulation_steps,
+            )
 
-            # New Code #
-            # Tracks the best checkpoint and best metric
-            if best_metric is None or best_metric < eval_metric:
-                best_metric = eval_metric
-                best_metric_checkpoint = os.path.join(self.output_dir, str(epoch))
-                self.accelerator.print(f"New best metric: {best_metric} at epoch {epoch}")
-                self.accelerator.print(f"best_metric_checkpoint: {best_metric_checkpoint}")
-        self.accelerator.print(f"*************** End EPOCHS **************")
-        # Loads the best checkpoint after the training is finished
-        if self.load_best_model:
-            _, last_global_step = load_training_checkpoint(
+            # Prepare everything
+            # There is no specific order to remember, we just need to unpack the objects in the same order we gave them to the
+            # prepare method.
+
+            self.model, optimizer, self.train_dataloader, self.eval_dataloader, lr_scheduler = self.accelerator.prepare(
                 self.model,
-                "/".join(best_metric_checkpoint.split("/")[:-1]),
-                tag=best_metric_checkpoint.split("/")[-1],
-                **{"load_optimizer_states": True, "load_lr_scheduler_states": True},
+                optimizer,
+                self.train_dataloader,
+                self.eval_dataloader,
+                lr_scheduler
                 )
+            best_metric = None
+            best_metric_checkpoint = None
+            completed_steps = 0
+            starting_epoch = 0
 
+            # Now we train the model
+            for epoch in range(num_epochs):
+                helpers.print_gpu_utilization()
 
+                self.accelerator.print(f"epoch {epoch} training...")
+                self.model.train()
+                for step, batch in enumerate(tqdm(self.train_dataloader)):
+                    # We could avoid this line since we set the accelerator with `device_placement=True`.
+                    batch.to(self.accelerator.device)
+                    outputs = self.model(**batch)
+                    loss = outputs.loss
+                    loss = loss / self.gradient_accumulation_steps
+                    self.accelerator.backward(loss)
+                    if step % self.gradient_accumulation_steps == 0 or step == len(self.train_dataloader) - 1:
+                        optimizer.step()
+                        lr_scheduler.step()
+                        optimizer.zero_grad()
+                        completed_steps += 1
+
+                self.accelerator.print(f"epoch {epoch} evaluating...")
+                # here supports only 1 metric for now
+                eval_metric = self.evaluate(self.eval_dataloader, extra_params)[self.metric]
+
+                self.accelerator.print(f"epoch {epoch} - {self.metric}", eval_metric)
+                
+                try:
+                    if self.experiment is not None:
+                        self.experiment.log_metric(self.metric,
+                                                eval_metric,
+                                                epoch=epoch)
+                except Exception as e:
+                    self.accelerator.print("couldnt log metric", e)
+
+                epoch_checkpoint_dir = f"epoch_{epoch}"
+                if self.output_dir is not None:
+                    epoch_checkpoint_dir = os.path.join(self.output_dir, epoch_checkpoint_dir)
+
+                # New Code #
+                # Tracks the best checkpoint and best metric
+                if best_metric is None or best_metric < eval_metric:
+                    best_metric = eval_metric
+                    best_metric_checkpoint = epoch_checkpoint_dir
+                    self.accelerator.print(f"New best metric: {best_metric} at epoch {epoch}")
+                    self.accelerator.print(f"best_metric_checkpoint: {best_metric_checkpoint}")
+                    self.accelerator.print("removing previously saved checkpoints...")
+                    folders = glob(f"{self.output_dir}/*")
+                    for f in folders:
+                        if f != best_metric_checkpoint:
+                            try:
+                                shutil.rmtree(f)
+                            except Exception as e:
+                                print("error while trying to delete prev folders:", e)
+                    
+                    if self.save_strategy == "epoch":
+                        self.accelerator.save_state(best_metric_checkpoint)
+
+            self.accelerator.print("Loading best model at "
+                                   f"{best_metric_checkpoint}")
+            self.accelerator.load_state(best_metric_checkpoint)
+            re_eval = self.evaluate(self.eval_dataloader, extra_params)[self.metric]
+            self.accelerator.print(f"evaluation on eval: {re_eval}")
+            test_eval_val = self.evaluate(self.test_dataloader, extra_params)[self.metric]
+            self.accelerator.print(f"evaluation on test set: {test_eval_val}")
+
+        finally:
+            self.accelerator.free_memory()
+        # Loads the best checkpoint after the training is finished
 
     def _get_example(self, index):
         return self.tokenized_data[self.eval_key][index][self.text_col]
@@ -426,28 +457,6 @@ class TextClassificationWAccelerate:
         label = model.config.id2label[predicted_class_id]
         return label
     
-    def evaluate(self):
-        self.model.eval()
-        for batch in tqdm(self.test_dataloader):
-            # We could avoid this line since we set the accelerator with `device_placement=True`.
-            batch.to(self.accelerator.device)
-            with torch.no_grad():
-                outputs = self.model(**batch)
-            predictions = outputs.logits.argmax(dim=-1)
-            predictions, references = self.accelerator.gather_for_metrics(
-                (predictions, batch["labels"])
-                )
-            self.evaluator.add_batch(
-                predictions=predictions,
-                references=references,
-            )
-
-        evaluation_results = self.evaluator.compute(predictions=None,
-                                             references=None,
-                                             **extra_params)
-
-        return evaluation_results
-
 
     
     @staticmethod

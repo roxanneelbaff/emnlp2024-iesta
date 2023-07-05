@@ -137,6 +137,7 @@ class IESTAData:
         
         def _apply_no_punc( row, col):
             row["text_no_punc"] = re.sub(r'[^\w\s]', '', row[col])
+            row["text_no_punc_on_clean"] = re.sub(r'[^\w\s]', '', row[col])
             return row
 
         file_path = os.path.join(properties.ROOT_PATH,
@@ -165,13 +166,22 @@ class IESTAData:
                 print("Adding Cleaned text")
                 df = df.apply(_apply_clean_txt, axis=1, args=("argument",))
 
+            dissmiss_arr = []
+            orig_dissmiss_arr = []
             with open("data/dismiss_text.txt", "r") as dismissedf:
                 dissmiss_arr = list(pd.Series(dismissedf.read().splitlines()).str.lower())
                 dissmiss_arr = list(set([re.sub(r'[^\w\s]', '', x) for x in dissmiss_arr]))
             
+            with open("data/dismiss_text.txt", "r") as dismissedf:
+                orig_dissmiss_arr = list(pd.Series(dismissedf.read().splitlines()).str.lower())
+
+            print(f"before filtering dismissed: {len(df)}")
             df = df.apply(_apply_no_punc, axis=1, args=("argument",))
             df = df[~df["text_no_punc"].str.lower().isin(dissmiss_arr)]
-            df = df[~df["cleaned_text"].str.lower().isin(dissmiss_arr)]
+            df = df[~df["text_no_punc_on_clean"].str.lower().isin(dissmiss_arr)]
+            print(f"After filtering dismissed no_punc df len: {len(df)}")
+            df = df[~df["argument"].str.lower().isin(orig_dissmiss_arr)]
+            df = df[~df["cleaned_text"].str.lower().isin(orig_dissmiss_arr)]
             print(f"After filtering dismissed df len: {len(df)}")
             print(f"Profiling data")
             

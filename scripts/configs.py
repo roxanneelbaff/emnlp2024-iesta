@@ -10,12 +10,21 @@ _LIBERAL_SC_ = "style_evaluator_liberal"
 
 _CONSERVATIVE_EVALUATOR = "style_evaluator_conservative_3052023"
 _LIBERAL_EVALUATOR_ = "style_evaluator_liberal_3052023"
-_LIBERAL_EVALUATOR1_ = "style_evaluator_longformer"
+
 _LIBERRAL_BB_ = "style_evaluator_liberal_bigbird"
 _LIBERAL_EVALUATOR_HS_ = "style_evaluator_liberal_hs_3052023"
 
 
 _liberal_deberta_ = "style_evaluator_liberal_debertav3"
+
+
+_LIBERAL_EVALUATOR_LF_ = "liberal_longformer"
+_CONSERVATIVE_EVALUATOR_LF_ = "conservative_longformer"
+
+
+_LIBERAL_EVALUATOR_DEBERTA_ = "liberal_deb"
+_CONSERVATIVE_EVALUATOR_DEBERTA_ = "conservative_deb"
+
 
 all_configs[_LIBERAL_EVALUATOR_] = {
     "ideology": "liberal",
@@ -76,12 +85,12 @@ all_configs[_CONSERVATIVE_EVALUATOR] = {
     "optuna_hp_func": None, #optuna_hp_space
 }
 
-all_configs[_LIBERAL_EVALUATOR1_] = {
+all_configs[_LIBERAL_EVALUATOR_LF_] = {
     "ideology": "liberal",
     "undersample": True,
     "pretrained_model_name": "allenai/longformer-base-4096",# reformer-crime-and-punishment "google/google/bigbird-roberta-base"allenai/longformer-base-4096", #"microsoft/deberta-base",
     "uncase": False,
-    "output_dir": f"{_LIBERAL_EVALUATOR1_}",
+    "output_dir": f"{_LIBERAL_EVALUATOR_LF_}",
     "learning_rate": 5e-6,#/4.0,
     "per_device_train_batch_size": 8,
     "per_device_eval_batch_size": 8,
@@ -102,6 +111,31 @@ all_configs[_LIBERAL_EVALUATOR1_] = {
     "seed": 42
 }
 
+all_configs[_LIBERAL_EVALUATOR_DEBERTA_] = {
+    "ideology": "liberal",
+    "undersample": True,
+    "pretrained_model_name": "microsoft/deberta-v3-base",# reformer-crime-and-punishment "google/google/bigbird-roberta-base"allenai/longformer-base-4096", #"microsoft/deberta-base",
+    "uncase": False,
+    "output_dir": f"{_LIBERAL_EVALUATOR_DEBERTA_}",
+    "learning_rate": 5e-6,#/4.0,
+    "per_device_train_batch_size": 8,
+    "per_device_eval_batch_size": 8,
+    "num_train_epochs": 30,
+    "weight_decay": 0.01,
+    "evaluation_strategy": "epoch",
+    "save_strategy": "epoch",
+    "push_to_hub": True,
+    "search_hp": False,
+    "hub_private_repo": True,
+    "optuna_hp_func": None,
+    "is_for_style_classifier": True,
+    "optimizer": "adamw_hf",
+    "tokenizer_max_length": 1024,
+    "tokenizer_padding": True,
+    "tokenizer_special_tokens": None, # {'pad_token': '[EOS]'},
+    "mixed_precision": "fp16",
+    "seed": 42
+}
 # google/bigbird-roberta-base
 
 

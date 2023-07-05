@@ -115,11 +115,6 @@ class IESTAData:
     _ONLY_EVAL_CLASSIFIER_: ClassVar =1
     _WITHOUT_EVAL_CLASSIFIER: ClassVar = 2
 
-    
-    
-
-
-
     def _get_out_files_path(self):
         return os.path.join(properties.ROOT_PATH, "splitted",  f"methodology_{self.methodology}")
 

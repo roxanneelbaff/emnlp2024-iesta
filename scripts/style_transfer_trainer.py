@@ -3,7 +3,7 @@
 from comet_ml import Experiment
 import GPUtil
 import torch
-
+from train_w_accelerate import TextClassificationWAccelerate
 import os
 import codecarbon
 from iesta.machine_learning.dataloader import IESTAData, LABELS
@@ -16,14 +16,14 @@ from configs import all_configs
 
 import random
 import gc
+from nlpaf.util import helpers
 
-global experiment
 def init_comet(experiment_key=None, name=None):
     if len(experiment_key) < 32:
         random_str = ''.join(random.choice('0123456789ABCDEF') for i in range(32-len(experiment_key)))
         experiment_key = f"{experiment_key}R{random_str}"
     experiment_key = experiment_key[0:49] if len(experiment_key)>50 else experiment_key
-    global experiment
+
     experiment = Experiment(
         api_key=os.getenv("COMET_API_KEY"),
         project_name=os.getenv("COMET_PROJECT_NAME"),
@@ -31,21 +31,19 @@ def init_comet(experiment_key=None, name=None):
         experiment_key=experiment_key)
     experiment.set_name(name)
     return experiment
-    
 
 def reset():
-    #gc.collect() 
     torch.cuda.empty_cache()
     #torch.backends.cuda.max_split_size_mb = 128
     print(GPUtil.showUtilization())
     found = load_dotenv(find_dotenv())
     print(f"dotenv was {found}")
 
-
 def check_cuda():
     use_cuda = torch.cuda.is_available()
-    #CUDA_VISIBLE_DEVICES
-
+    helpers.print_gpu_utilization()
+    
+    # CUDA_VISIBLE_DEVICES
     if use_cuda:
         print('__CUDNN VERSION:', torch.backends.cudnn.version())
         print('__Number CUDA Devices:', torch.cuda.device_count())
@@ -56,15 +54,14 @@ def check_cuda():
 
 
 def run_experiment(config_key: str):
-    global experiment
+    config_dict = all_configs[config_key]
+    run_id = config_dict["output_dir"].split("/")[-1].replace("_", "") + "2"
+    experiment = TextClassificationWAccelerate.get_experiment(run_id)
     try:
         reset()
-  
+
         login(os.getenv('HUGGINGFACE_TOKEN'), add_to_git_credential=True)
         print(f"Running Experiments for key {config_key}")
-        config_dict = all_configs[config_key]
-        print(config_dict["output_dir"].split("/")[-1].replace("_", ""))
-        experiment = init_comet(config_dict["output_dir"].split("/")[-1].replace("_", ""), config_dict["output_dir"])
         
         check_cuda()
         experiment.log_parameters(config_dict)
@@ -74,15 +71,10 @@ def run_experiment(config_key: str):
         dataset_name = huggingface_dataset.get_dataset_name(is_for_style_classifier=config_dict["is_for_style_classifier"])
         print(dataset_name)
 
-        """
-            "optimizer": "adamw_hf",
-    "tokenizer_max_length": 1024,
-    "tokenizer_padding": True
-    """
-        trainer = TextClassification(
+        trainer = TextClassificationWAccelerate(
             dataset_name,
-            id2label=  IESTAHuggingFace._ID2LABEL_,
-            label2id= IESTAHuggingFace._LABEL2ID_,
+            id2label=IESTAHuggingFace._ID2LABEL_,
+            label2id=IESTAHuggingFace._LABEL2ID_,
             training_key="training",
             eval_key="validation",
             text_col="text",
@@ -108,11 +100,10 @@ def run_experiment(config_key: str):
             tokenizer_padding=config_dict["tokenizer_padding"],
             tokenizer_special_tokens=config_dict["tokenizer_special_tokens"],
             report_to="comet_ml",  # comet_ml##
-            is_fp16=config_dict["is_fp16"],
-            gradient_accumulation_steps=config_dict["gradient_accumulation_steps"],
-            gradient_checkpointing=config_dict["gradient_checkpointing"]
+            mixed_precision=config_dict["mixed_precision"],
+            run_id=run_id
             )
-        
+        """
         if config_dict["search_hp"]:
             hpsearch_bestrun = trainer.search_hyperparameters( n_trials= 5,
                                         run_on_subset= False,
@@ -124,9 +115,10 @@ def run_experiment(config_key: str):
             for n, v in hpsearch_bestrun.hyperparameters.items():
                 print(f" {n}:{v}")
         else:
-            trainer.train()
-            score = trainer.evaluate()
-            experiment.log_metric("test_score", score)
+        """
+
+        trainer.train()
+        score = trainer.evaluate()
     
     finally:
         experiment.end()
@@ -143,10 +135,7 @@ def main():
 
         run_experiment(args.experimentkey)
     finally:
-        #tracker.stop()
-        global experiment
-        experiment.end()
-        #print(f"FINAL EMMISION {tracker.final_emissions}")
+        pass
 
 if __name__ == "__main__":
     main()

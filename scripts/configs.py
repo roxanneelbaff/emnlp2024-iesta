@@ -76,37 +76,18 @@ all_configs[_CONSERVATIVE_EVALUATOR] = {
     "optuna_hp_func": None, #optuna_hp_space
 }
 
+#
+
 all_configs[_LIBERAL_EVALUATOR1_] = {
     "ideology": "liberal",
     "undersample": True,
-    "pretrained_model_name": "allenai/longformer-base-4096", #"microsoft/deberta-base",
+    "pretrained_model_name": "allenai/longformer-base-4096",# reformer-crime-and-punishment "google/google/bigbird-roberta-base"allenai/longformer-base-4096", #"microsoft/deberta-base",
     "uncase": False,
     "output_dir": f"{_LIBERAL_EVALUATOR1_}",
-    "learning_rate": 2e-6,
-    "per_device_train_batch_size" :8,
-    "per_device_eval_batch_size": 8,
-    "num_train_epochs": 12,
-    "weight_decay": 0.01,
-    "evaluation_strategy": "epoch",
-    "save_strategy": "epoch",
-    "push_to_hub": False,
-    "search_hp": False,
-    "hub_private_repo": False,
-    "optuna_hp_func": None,
-    "is_for_style_classifier": True
-}#
-#
-
-all_configs[_liberal_deberta_] = {
-    "ideology": "liberal",
-    "undersample": True,
-    "pretrained_model_name": "microsoft/deberta-v3-base",# reformer-crime-and-punishment "google/google/bigbird-roberta-base"allenai/longformer-base-4096", #"microsoft/deberta-base",
-    "uncase": False,
-    "output_dir": f"{_liberal_deberta_}",
-    "learning_rate": 2e-6/4.0,
+    "learning_rate": 5e-6,#/4.0,
     "per_device_train_batch_size": 8,
     "per_device_eval_batch_size": 8,
-    "num_train_epochs": 10,
+    "num_train_epochs": 30,
     "weight_decay": 0.01,
     "evaluation_strategy": "epoch",
     "save_strategy": "epoch",
@@ -118,10 +99,9 @@ all_configs[_liberal_deberta_] = {
     "optimizer": "adamw_hf",
     "tokenizer_max_length": 1024,
     "tokenizer_padding": True,
-    "tokenizer_special_tokens": {'pad_token': '[EOS]'},
-    "is_fp16": True,
-    "gradient_accumulation_steps": 4,
-    "gradient_checkpointing":True
+    "tokenizer_special_tokens": None, # {'pad_token': '[EOS]'},
+    "mixed_precision": "fp16",
+    "seed": 42
 }
 
 # google/bigbird-roberta-base

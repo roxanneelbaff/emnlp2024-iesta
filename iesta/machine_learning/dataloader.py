@@ -123,7 +123,7 @@ class IESTAData:
         return os.path.join(properties.ROOT_PATH, "splitted",  f"methodology_{self.methodology}")
 
     
-    def split_iesta_dataset_by_debate(self, force_reload: bool = False): 
+    def split_iesta_dataset_by_debate(self, force_reload: bool = False, profile:bool= False): 
         """
         parammeters:
             evaluation_classfier_data_flag: int 
@@ -152,13 +152,11 @@ class IESTAData:
             data_w_splits_df = pd.read_parquet(file_path)
             # GET data for the evaluation trainer for style
             print("The file for data_w_splits_df already exists")
-
-        else: # File does not exists
+        else: 
             processor = proc.Process()
             df, _ = processor.get_ideology_based_voter_participant_df(self.ideology)
             print(f"Original df len: {len(df)}")
             if self.keep_labels is not None and len(self.keep_labels)>0:
-                print(f"Before filtering effects {len(df)}")
                 df = df[df['effect'].isin(self.keep_labels)]
                 print(f"After filtering effects {len(df)}")
 
@@ -168,14 +166,14 @@ class IESTAData:
 
             dissmiss_arr = []
             orig_dissmiss_arr = []
-            with open("data/dismiss_text.txt", "r") as dismissedf:
+           
+            with open(os.path.join(properties.ROOT_PATH, "dismiss_text.txt"), "r") as dismissedf:
                 dissmiss_arr = list(pd.Series(dismissedf.read().splitlines()).str.lower())
                 dissmiss_arr = list(set([re.sub(r'[^\w\s]', '', x) for x in dissmiss_arr]))
             
-            with open("data/dismiss_text.txt", "r") as dismissedf:
+            with open(os.path.join(properties.ROOT_PATH, "dismiss_text.txt"), "r") as dismissedf:
                 orig_dissmiss_arr = list(pd.Series(dismissedf.read().splitlines()).str.lower())
 
-            print(f"before filtering dismissed: {len(df)}")
             df = df.apply(_apply_no_punc, axis=1, args=("argument",))
             df = df[~df["text_no_punc"].str.lower().isin(dissmiss_arr)]
             df = df[~df["text_no_punc_on_clean"].str.lower().isin(dissmiss_arr)]
@@ -186,12 +184,13 @@ class IESTAData:
             print(f"Profiling data")
             
             df["text_low"] = df["cleaned_text"].str.lower()
-            profile = ProfileReport(df[["text_low"]], title="Profiling Report")
-            profile.to_file(f"data/profilers/{self.ideology}_all_data_low.html")
+            if profile:
+                profile = ProfileReport(df[["text_low"]], title="Profiling Report")
+                profile.to_file( os.path.join(properties.ROOT_PATH, "profilers", f"{self.ideology}_all_data_low.html"))
 
-            profile = ProfileReport(df[["cleaned_text"]], title="Profiling Report")
-            profile.to_file(f"data/profilers/{self.ideology}_all_data.html")
-            print(f"End of profiling")
+                profile = ProfileReport(df[["cleaned_text"]], title="Profiling Report")
+                profile.to_file( os.path.join(properties.ROOT_PATH, "profilers", f"{self.ideology}_all_data.html"))
+                print(f"End of profiling")
     
             debates = df['debate_id'].unique()
 
@@ -228,18 +227,26 @@ class IESTAData:
             test_debates_sample = _get_sample_debates(data_w_splits_df, 'test')
             sample_debates = training_debates_sample + validation_debates_sample + test_debates_sample
             data_w_splits_df = data_w_splits_df.apply(_apply_add_evaluation_classifier_data, axis=1, args=(sample_debates,))
-        data_w_splits_df.to_parquet(file_path)
+        data_w_splits_df = data_w_splits_df[["id", "debate_id", "p_name",
+                                             "effect", "category",
+                                             "round", "argument",
+                                             "cleaned_text",
+                                             "is_for_eval_classifier", "split"]]
+        data_w_splits_df.index.name = "idx"
+        data_w_splits_df.to_parquet(file_path, index=True)
 
         for g, _df in data_w_splits_df.groupby(["is_for_eval_classifier"]):
             print(f"\n{g}")
-            profile = ProfileReport(_df, title=f"PR {self.ideology} is_for_eval_classifier {g}")
-            profile.to_file(f"data/profilers/{self.ideology}_for_eval_classifier-{g}.html")
+            if profile:
+                profile = ProfileReport(_df, title=f"PR {self.ideology} is_for_eval_classifier {g}")
+                profile.to_file(os.path.join(properties.ROOT_PATH, "profilers", f"{self.ideology}_is-for-evaluator_{g}.html"))
+
             print(pd.crosstab(_df['split'], _df['effect']))
 
         split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'],
                                             data_w_splits_df['effect'])
         print(f"All\n{split_effect_pivot_df}")
-
+        
         return data_w_splits_df, split_effect_pivot_df
 
     def prepare_data_for_transformers(self):

@@ -29,9 +29,9 @@ class IESTAHuggingFace():
         row['label'] = label2id[row['effect']]
         return row
     
-    def get_dataset_name(self, is_for_style_classifier:bool):
-        _KEY_  = "LABELLED_FOR_STYLE_CLASSIFIER" if is_for_style_classifier else "LABELLED"
-        dataset_name= f"notaphoenix/{IESTAHuggingFace._DATASET_NAME_DIC_[_KEY_].format(ideology=self.iesta_dataset.ideology)}"
+    def get_dataset_name(self, is_for_style_classifier : bool):
+        _KEY_ = "LABELLED_FOR_STYLE_CLASSIFIER" if is_for_style_classifier else "LABELLED"
+        dataset_name = f"notaphoenix/{IESTAHuggingFace._DATASET_NAME_DIC_[_KEY_].format(ideology=self.iesta_dataset.ideology)}"
         return dataset_name
 
     def upload_w_labels(self, is_for_style_classifier:bool, text_col:str = "cleaned_text", force_reload:bool=False):
@@ -47,7 +47,7 @@ class IESTAHuggingFace():
 
         if force_reload:
             print("(Re)creating huggingface dataset from local dataset")
-            data_w_splits_df, _ = self.iesta_dataset.split_iesta_dataset_by_debate(force_reload=self.reload_preprocess)
+            data_w_splits_df, _ = self.iesta_dataset.split_iesta_dataset_by_debate(force_reload=self.reload_preprocess, profile=False)
             _df: pd.DataFrame = data_w_splits_df.copy()
 
             if is_for_style_classifier:
@@ -59,17 +59,15 @@ class IESTAHuggingFace():
                             axis=1,
                             args=(IESTAHuggingFace._LABEL2ID_,))
 
-            _df = _df.rename({ text_col:'text'},axis='columns')
+            _df = _df.rename({text_col:'text', 'p_name': 'author', 'argument':'original_text'},axis='columns', )
             print(f"The columns are {_df.columns.tolist()}")
 
             data_splits: dict ={}
             for split, split_df in _df.groupby('split'):
-                data_splits[split] = Dataset.from_pandas(split_df[["text", "label"]], preserve_index=True)
+                data_splits[split] = Dataset.from_pandas(split_df[["text", "label", "author", "original_text", "category", "round", "debate_id"]], preserve_index=True)
                 
             labelled_dataset: DatasetDict = DatasetDict(data_splits)
-            
-
-            labelled_dataset.push_to_hub(dataset_name, private=True )
+            labelled_dataset.push_to_hub(dataset_name, private=True)
             labelled_dataset =  load_dataset(dataset_name, use_auth_token=True) 
         return labelled_dataset
 

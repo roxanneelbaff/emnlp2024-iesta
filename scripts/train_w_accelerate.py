@@ -178,13 +178,10 @@ class TextClassificationWAccelerate:
             self.accelerator.print("undersampling")
             self._random_undersample()
 
-    def _random_undersample(self):
+    def resample_ds(self, split):
+        labels = np.array(self.dataset[split]['label'])
 
-        np.random.seed(self.seed)
-
-        labels = np.array(self.dataset[self.training_key]['label'])
-
-        print(np.unique(np.array(self.dataset[self.training_key]['label']),
+        print(np.unique(np.array(self.dataset[split]['label']),
                         return_counts=True))
 
         # Get the indices for each class
@@ -206,10 +203,15 @@ class TextClassificationWAccelerate:
             shuffled[_label] = _indices[:min_length]
 
         balanced_indices = np.concatenate([v for _, v in shuffled.items()])
-        self.dataset[self.training_key] = self.dataset[self.training_key].select(balanced_indices)
+        self.dataset[split] = self.dataset[split].select(balanced_indices)
 
-        print(np.unique(np.array(self.dataset[self.training_key]['label']),
+        print(np.unique(np.array(self.dataset[split]['label']),
                         return_counts=True))
+
+    def _random_undersample(self):
+        self.resample_ds(self.training_key)
+        self.resample_ds(self.eval_key)
+        self.resample_ds("test")
         return self.dataset
 
     def set_batch_size(self):
@@ -266,7 +268,7 @@ class TextClassificationWAccelerate:
             self.tokenized_datasets = self.dataset.map(
                 self._tokenize_function,
                 batched=True,
-                remove_columns=[ "text"]
+                remove_columns=["text", "__index_level_0__"]
             )
 
         self.tokenized_datasets = self.tokenized_datasets.rename_column("label",

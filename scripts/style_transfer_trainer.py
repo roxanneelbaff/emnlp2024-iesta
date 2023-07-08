@@ -101,7 +101,13 @@ def run_experiment(config_key: str, id_: int = 1):
             tokenizer_special_tokens=config_dict["tokenizer_special_tokens"],
             report_to="comet_ml",  # comet_ml##
             mixed_precision=config_dict["mixed_precision"],
-            run_id=run_id
+            run_id=run_id,
+            remove_cols_lst=['author',
+                             'original_text',
+                             'category',
+                             'round',
+                             'debate_id',
+                             'idx']
             )
         """
         if config_dict["search_hp"]:
@@ -140,3 +146,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+#  nohup python3 -u -m accelerate.commands.launch --multi_gpu --num_processes 2 --mixed_precision "fp16" scripts/style_transfer_trainer.py -i 24 -k liberal_longformer > logs/liberal_lf.log 2>&1 

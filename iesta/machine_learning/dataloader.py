@@ -47,7 +47,7 @@ def apply_add_rounds(row, df__):
     return row
 
 
-def get_previous_opposite_arg(df, debate_id, p_name, debate_round):
+def get_previous_opposite_arg(df, debate_id, p_name, debate_round, text_col):
     prev_arg = ""
     if debate_round > 0:
         prev_arg_df = df[
@@ -56,7 +56,7 @@ def get_previous_opposite_arg(df, debate_id, p_name, debate_round):
             with open("../data/error_no_previous_args.txt", "a") as f:
                 f.write(f"{debate_id},  p_name:{p_name}, round:{debate_round}\n")
 
-        prev_arg = prev_arg_df["argument"].values[0] if len(prev_arg_df) > 0 else ""
+        prev_arg = prev_arg_df[text_col].values[0] if len(prev_arg_df) > 0 else ""
     return prev_arg
 
 
@@ -137,7 +137,7 @@ class IESTAData:
         
         def _apply_no_punc( row, col):
             row["text_no_punc"] = re.sub(r'[^\w\s]', '', row[col])
-            row["text_no_punc_on_clean"] = re.sub(r'[^\w\s]', '', row[col])
+            row["text_no_punc_on_clean"] = re.sub(r'[^\w\s]', '', row["cleaned_text"])
             return row
 
         file_path = os.path.join(properties.ROOT_PATH,
@@ -249,7 +249,7 @@ class IESTAData:
         
         return data_w_splits_df, split_effect_pivot_df
 
-    def prepare_data_for_transformers(self):
+    def prepare_data_for_transformers(self, reload:bool = False):
         data_w_splits_df, split_effect_pivot_df = self.split_iesta_dataset_by_debate()
 
         result_df_lst = []
@@ -260,13 +260,13 @@ class IESTAData:
 
         df_file = os.path.join(path, f"processed_data_{self.ideology.lower()}.parquet")
 
-        if os.path.isfile(df_file):
+        if os.path.isfile(df_file) and not reload:
             iesta.logger.info("File already created. Loading file...")
             df = pd.read_parquet(df_file)
             split_effect_pivot_df = pd.crosstab(data_w_splits_df['split'], data_w_splits_df['effect'])
             return df, split_effect_pivot_df, df_file
 
-        text_col_name = "argument"
+        text_col_name = "cleaned_text"
         for effect_split, effect_split_df in data_w_splits_df.groupby(["effect", "split"]):
             # for an effect
             args_lst = []
@@ -276,7 +276,7 @@ class IESTAData:
             file = os.path.join(path, f"{self.ideology.lower()}_{effect_split[0]}_{effect_split[1]}.txt")
 
             if self.methodology == METHODOLOGY.EACH:
-                args_lst = effect_split_df["argument"].tolist()
+                args_lst = effect_split_df[text_col_name].tolist()
                 df_ = effect_split_df.copy()
                 result_df_lst.append(df_)
 
@@ -285,18 +285,18 @@ class IESTAData:
                     debate_round = df_["round"].min() if self.methodology == "first" else df_["round"].max()
 
                     df_ = df_[df_["round"] == debate_round]
-                    assert len(df_["argument"].tolist()) == 1
+                    assert len(df_[text_col_name].tolist()) == 1
                     result_df_lst.append(df_)
-                    args_lst.extend(df_["argument"].tolist())
+                    args_lst.extend(df_[text_col_name].tolist())
 
             elif self.methodology in [METHODOLOGY.FIRST_LAST]:
                 for _, df_ in effect_split_df.groupby(["debate_id", "p_name"]):
                     df_ = df_[(df_["round"] == df_["round"].min()) | (df_["round"] == df_["round"].max())]
                     df_ = df_.sort_values(by="round")
 
-                    arg = " <LAST> ".join(df_["argument"].tolist())
-                    assert len(df_["argument"].tolist()) == 2 if (df_["round"].min() != df_["round"].max()) else \
-                        len(df_["argument"].tolist()) == 1
+                    arg = " <LAST> ".join(df_[text_col_name].tolist())
+                    assert len(df_[text_col_name].tolist()) == 2 if (df_["round"].min() != df_["round"].max()) else \
+                        len(df_[text_col_name].tolist()) == 1
 
                     temp_df = df_[-1:][['id',
                                         'debate_id',
@@ -321,22 +321,32 @@ class IESTAData:
 
             with open(file, 'w', encoding="utf8") as f:
                 for arg in args_lst:
-                    arg = f"<s>{dataloader.clean_argument(arg)}</s>"
+                    arg = f"<s>{arg}</s>"
                     f.write(f"{arg}\n")
 
         df = pd.concat(result_df_lst)
-        df= df.apply(dataloader._apply_clean_txt, args=(text_col_name,) , axis=1)
-        df.to_parquet(df_file)
+        df.index.name = "idx"
+        # df= df.apply(dataloader._apply_clean_txt, args=(text_col_name,) , axis=1)
+        df.to_parquet(df_file, index=True)
         return df, pd.crosstab(df['split'], df['effect']), df_file
 
 
 
-    def get_training_data(self,):
-        self.data_df, self.pivot_df, _ = self.prepare_data_for_transformers()
-
+    def get_training_data(self, reload=False):
+        # Works only for EACH
         path = self._get_out_files_path()
-        df_file = os.path.join(path, f"processed_data_{self.ideology.lower()}_training.parquet")
-        training_data = self.data_df[self.data_df["split"]== "training"].copy()
+        df_file = os.path.join(path,
+                               f"{self.ideology.lower()}_training.parquet")
+
+        if os.path.isfile(df_file) and not reload:
+            iesta.logger.info("File already created. Loading file...")
+            training_data = pd.read_parquet(df_file)
+            return training_data, df_file
+        print("getting training data only")
+        data_w_splits_df, _ = self.split_iesta_dataset_by_debate()
+        training_data = data_w_splits_df.copy()
+        training_data = training_data[((training_data["is_for_eval_classifier"]==False)&(training_data["split"]=="training"))]
+
         utils.create_folder(path)
         training_data.to_parquet(df_file)
         return training_data, df_file
@@ -347,14 +357,12 @@ from glob import glob
 from iesta.machine_learning.feature_extraction import get_features_df
 
 
-def load_training_data(ideology:str = "liberal", keep_labels=LABELS.EFF_INEFF, methodology:str =METHODOLOGY.EACH)-> Dict[str,pd.DataFrame]:
-
-    
-    dataloader = IESTAData(ideology=ideology, keep_labels = keep_labels, methodology=methodology)
-
+def load_training_data(ideology:str = "liberal", keep_labels=LABELS.EFF_INEFF, methodology:str=METHODOLOGY.EACH) -> Dict[str,pd.DataFrame]:
+    dataloader = IESTAData(ideology=ideology,
+                           keep_labels=keep_labels,
+                           methodology=methodology)
     _, training_data_path = dataloader.get_training_data()
     training_data = pd.read_parquet(training_data_path)
-        
 
     return training_data
 

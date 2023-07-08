@@ -75,6 +75,7 @@ class TextClassificationWAccelerate:
     seed: int = 42
     run_id: str = None
     load_best_model: bool = True
+    remove_cols_lst: list = None
 
     MAX_GPU_BATCH_SIZE: ClassVar = 8
     EVAL_BATCH_SIZE: ClassVar = 8
@@ -138,7 +139,7 @@ class TextClassificationWAccelerate:
                                        mixed_precision=self.mixed_precision,
                                        log_with=self.report_to,
                                        project_dir=self.output_dir)
-        
+
         self.logger = get_logger(__name__)
         logging.basicConfig(
             format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -146,7 +147,7 @@ class TextClassificationWAccelerate:
             level=logging.INFO,
             )
         self.logger.info(self.accelerator.state, main_process_only=False)
-        self.logger.info(self.accelerator.state, main_process_only=False)
+        
         if self.accelerator.is_local_main_process:
             datasets.utils.logging.set_verbosity_warning()
             transformers.utils.logging.set_verbosity_info()
@@ -172,8 +173,14 @@ class TextClassificationWAccelerate:
         
 
     def set_dataset(self):  #ok
+        print(self.dataset)
         if type(self.dataset) is str:
             self.dataset: DatasetDict = load_dataset(self.dataset)
+
+        if self.remove_cols_lst is not None and len(self.remove_cols_lst) > 0:
+            self.dataset = self.dataset.remove_columns(self.remove_cols_lst,)
+        print(self.dataset)
+
         if self.undersample:
             self.accelerator.print("undersampling")
             self._random_undersample()
@@ -268,7 +275,7 @@ class TextClassificationWAccelerate:
             self.tokenized_datasets = self.dataset.map(
                 self._tokenize_function,
                 batched=True,
-                remove_columns=["text", "__index_level_0__"]
+                remove_columns=["text"]
             )
 
         self.tokenized_datasets = self.tokenized_datasets.rename_column("label",
@@ -421,6 +428,9 @@ class TextClassificationWAccelerate:
                     
                     if self.save_strategy == "epoch":
                         self.accelerator.save_state(best_metric_checkpoint)
+                if num_epochs == (epoch-1):
+                    self.accelerator.print("saving the last state")
+                    self.accelerator.save_state(epoch_checkpoint_dir)
 
             self.accelerator.print("Loading best model at "
                                    f"{best_metric_checkpoint}")

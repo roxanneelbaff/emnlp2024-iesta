@@ -62,7 +62,7 @@ def extract_features(ideology:str,
                      batch_size:int=500, 
                      spacy_n_processors=1,
                      transformer_based_features:bool= False,
-                      ):
+                    ):
     counter = 1
     data_df = pd.read_parquet(data_path)
     total = math.ceil(len(data_df)/(batch_size))
@@ -75,7 +75,7 @@ def extract_features(ideology:str,
     tqdm.pandas()
 
     customized_feature = "transformer-features" if transformer_based_features else "style-features"
-    out_path = f"../data/extracted_features/{ideology}_{customized_feature}_{batch_size}"
+    out_path = f"data/extracted_features/{ideology}_{customized_feature}_{batch_size}"
     utils.create_folder(out_path)
     out_file = out_path+f"/{ideology}_batch"+ "{}_{}_"+customized_feature+".parquet"
 

@@ -4,16 +4,16 @@ import argparse
 
 def run(ideology, models, fewshots, examples_k, with_similarity):
     if fewshots:
-        for k in range(3):
+        for k in range(1, examples_k+1):
             print(f" #### FOR K {k} ####")
-            k = k + 1
+
             if models == "all":
                 generator = Generator(
                     ideology=ideology,
                     model_name=Generator._MODEL_ALPACA_,
                     trainingdata_profiling=True,
                     use_fewshots=fewshots,
-                    fewshots_num_examples=examples_k,
+                    fewshots_num_examples=k,
                     fewshots_w_semantic_similarity=with_similarity,
                 )
                 generator.generate_all()
@@ -23,7 +23,7 @@ def run(ideology, models, fewshots, examples_k, with_similarity):
                     model_name=Generator._MODEL_CHATGPT_,
                     trainingdata_profiling=True,
                     use_fewshots=fewshots,
-                    fewshots_num_examples=examples_k,
+                    fewshots_num_examples=k,
                     fewshots_w_semantic_similarity=with_similarity,
                 )
                 generator.generate_all()
@@ -33,7 +33,7 @@ def run(ideology, models, fewshots, examples_k, with_similarity):
                     model_name=models,
                     trainingdata_profiling=True,
                     use_fewshots=fewshots,
-                    fewshots_num_examples=examples_k,
+                    fewshots_num_examples=k,
                     fewshots_w_semantic_similarity=with_similarity,
                 )
                 generator.generate_all()

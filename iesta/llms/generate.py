@@ -140,7 +140,7 @@ class Generator:
                 "text-generation",
                 model=alpaca_llm,
                 tokenizer=tokenizer,
-                max_length=2048,
+                max_length=4096,
                 temperature=0,
                 top_p=0.95,
                 repetition_penalty=1.2,
@@ -253,11 +253,16 @@ class Generator:
         result_dict = {}
 
         # Preparing PROMPTS
+        examples = []
+        if len(self.examples) < self.fewshots_num_examples:
+            print("warning: ran out of examples, replenishing...") 
+            self.examples = self.get_examples(save=False)
+
         for k, prompt_template in self.prompt_dict.items():
             if self.use_fewshots:
                 template = (
                     prompt_template.format(ideology=self.ideology)
-                    + "\n    Argument: {ineffective_argument}\n    "
+                    + "\n    Argument: {ineffective_argument}\n"
                 )
                 # prompt = PromptTemplate(template=template, input_variables=["ineffective_argument"])
 
@@ -267,7 +272,7 @@ class Generator:
                 )
 
                 prompt = FewShotPromptTemplate(
-                    examples=[
+                    examples=examples if len(examples) > 0 else [
                         self.examples.pop()
                         for _ in range(0, self.fewshots_num_examples)
                     ],

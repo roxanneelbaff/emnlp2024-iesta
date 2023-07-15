@@ -71,11 +71,11 @@ class Generator:
         prompt_dict = {
             "basic": f"{basic_str}:",
             "ideology": f"{basic_str} {ideology_str}:",
-            "content": f"{basic_str} {content_str}:",
-            "style": f"{basic_str} {style_str}:",
+            "content": f"{basic_str}, and {content_str}:",
+            "style": f"{basic_str}, and {style_str}:",
             "ideology-content": f"{basic_str} {ideology_str} {content_str}:",
             "ideology-style": f"{basic_str} {ideology_str} {style_str}:",
-            "all": f"{basic_str} {ideology_str} {content_str} and {style_str}:",
+            "all": f"{basic_str} {ideology_str} {content_str}, and {style_str}:",
         }
         return prompt_dict
 
@@ -191,7 +191,7 @@ class Generator:
             report.to_file(f"{self.ideology}_test_{limit}_seed_{seed}")
 
         if self.data_save:
-            df.to_csv(f"{self.ideology}_test_{limit}_seed_{seed}.csv")
+            df.to_csv(f"data/{self.ideology}_test_{limit}_seed_{seed}.csv")
         return dataset
 
     def _run_test(self):
@@ -231,9 +231,9 @@ class Generator:
         filename: str = f"{self.ideology}_training_{limit}_seed_{seed}_fewshot_{self.fewshots_num_examples}_similarity{self.fewshots_w_semantic_similarity}"
         if self.trainingdata_profiling:
             report = ProfileReport(df=df, minimal=True)
-            report.to_file(f"{filename}.html")
+            report.to_file(f"data/{filename}.html")
 
-        df.to_csv(f"{filename}.csv")
+        df.to_csv(f"data/{filename}.csv")
 
         result = [
             {"effective_argument": x} for x in df["text"].values.tolist()

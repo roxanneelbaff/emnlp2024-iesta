@@ -331,7 +331,6 @@ class IESTAData:
         return df, pd.crosstab(df['split'], df['effect']), df_file
 
 
-
     def get_training_data(self, reload=False):
         # Works only for EACH
         path = self._get_out_files_path()
@@ -367,21 +366,18 @@ def load_training_data(ideology:str = "liberal", keep_labels=LABELS.EFF_INEFF, m
     return training_data
 
 
-def load_training_features_df(ideology:str = "liberal", keep_labels=LABELS.EFF_INEFF):#->Dict[str,pd.DataFrame] Dict[str, Dict[str, pd.DataFrame]]):
+def load_training_features_df(ideology: str = "liberal", keep_labels=LABELS.EFF_INEFF):#->Dict[str,pd.DataFrame] Dict[str, Dict[str, pd.DataFrame]]):
     path = "../data/extracted_features/"
 
-    training_data = load_training_data(ideology=ideology, keep_labels=keep_labels, methodology =METHODOLOGY.EACH)
+    training_data = load_training_data(ideology=ideology, keep_labels=keep_labels, methodology=METHODOLOGY.EACH)
 
     feature_dfs = {}
 
-    
-    style_features_path = glob(f"{path}/{ideology}_style-features_1000/*.parquet")
+    style_features_path = glob(f"{path}/{ideology}_style-features_5000/*.parquet")
     transformer_features_path = glob(f"{path}/{ideology}_transformer-features_100/*.parquet")
 
-
-    empath_mpqa_df  = get_features_df(style_features_path, 1000, training_data)
+    empath_mpqa_df  = get_features_df(style_features_path, 5000, training_data)
     transformers_based_features_df = get_features_df(transformer_features_path, 100, training_data)
-
 
     difference = transformers_based_features_df.columns.difference(empath_mpqa_df.columns)
     feature_dfs =  empath_mpqa_df.merge(transformers_based_features_df[difference], right_index=True, left_index=True)

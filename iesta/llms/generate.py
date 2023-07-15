@@ -52,11 +52,11 @@ from datasets.combine import concatenate_datasets
 from iesta.machine_learning.huggingface_loader import IESTAHuggingFace
 from ydata_profiling import ProfileReport
 from langdetect import detect
+from langchain.prompts.few_shot import FewShotPromptTemplate
+from langchain.prompts.prompt import PromptTemplate
 
 @dataclasses.dataclass
 class Generator():
-    _MODEL_CHATGPT_ = "gpt-3.5-turbo"
-    _MODEL_ALPACA_ = "alpaca"
     ideology: str  # liberal or conservative
     model_name: str  # gpt or alpaca
 
@@ -66,6 +66,15 @@ class Generator():
     seed: int = 2062021
 
     out_file: str = "data/llms_out/"
+
+    use_fewshots: bool = False
+    fewshots_num_examples: int = 1  # we use 1 to 3
+    fewshots_w_semantic_similarity: bool = False
+    verbose: int = 0
+    
+    _MODEL_CHATGPT_: ClassVar = "gpt-3.5-turbo"
+    _MODEL_ALPACA_: ClassVar = "alpaca"
+    _LIMIT_: ClassVar = 500
 
     # HELPERS   #
     # --------- #
@@ -113,6 +122,9 @@ class Generator():
               "filtered_dataset...")
         self.filtered_dataset = self.get_data(effect="ineffective")
 
+        if self.use_fewshots:
+            self.examples = self.get_examples()
+        
     def get_model(self):
         if self.model_name == Generator._MODEL_CHATGPT_:
             local_llm = ChatOpenAI(model_name=Generator._MODEL_CHATGPT_,
@@ -140,7 +152,8 @@ class Generator():
             local_llm = HuggingFacePipeline(pipeline=pipe)
         return local_llm
 
-    def get_data(self, effect='ineffective', limit: int = 500):
+    def get_data(self, effect='ineffective'):
+        limit = _LIMIT_
         seed = 2062021
         name: str = f'notaphoenix/debateorg_w_effect_for_{self.ideology}'
         dataset: Dataset = load_dataset(name, split="test")
@@ -160,12 +173,12 @@ class Generator():
             idxes = dataset.to_pandas()['idx'].values.tolist()
             dataset_extra: Dataset = load_dataset(name, split="test")
             dataset_extra = dataset_extra.filter(lambda x: len(x["text"].split(" ")) > 10 and \
-                                                           len(x["text"].split(" ")) <= 1024 and  \
-                                                           x["idx"] != 64707 and  \
-                                                           detect(x["text"]) == "en")
+                                                 len(x["text"].split(" ")) <= 1024 and  \
+                                                 x["idx"] != 64707 and  \
+                                                 detect(x["text"]) == "en")
 
             dataset_extra = dataset_extra.filter(lambda x:  x["label"] == IESTAHuggingFace._LABEL2ID_[effect]  and \
-                                                            x["idx"] not in idxes).shuffle(seed=seed)
+                                                 ["idx"] not in idxes).shuffle(seed=seed)
             dataset_extra = dataset_extra.select(range(limit-len(dataset)))
             print(f"{len(dataset_extra)} of extra")
             dataset = concatenate_datasets([dataset, dataset_extra])
@@ -195,31 +208,79 @@ class Generator():
 
         return result
 
+    def get_examples(self, save: bool= True) -> list:
+
+        limit = Generator._LIMIT_ * self.fewshots_num_examples
+        seed = self.seed
+
+        name: str = f'notaphoenix/debateorg_w_effect_for_{self.ideology}'
+        dataset: Dataset = load_dataset(name, split="training")
+        dataset = dataset.filter(lambda x: x["label"] == IESTAHuggingFace._LABEL2ID_["effective"] and \
+                                 len(x["text"].split(" ")) > 10 and \
+                                 len(x["text"].split(" ")) <= 1024 and  \
+                                 detect(x["text"]) == "en").shuffle(seed=seed)
+
+        if len(dataset) > limit and not self.fewshots_w_semantic_similarity:
+            dataset = dataset.select(range(limit))
+        print(f"{len(dataset)} new length")
+        print(f"Return dataset {name} with {len(dataset)} ")
+
+        df = dataset.to_pandas().copy()
+        filename: str = f"{self.ideology}_training_{limit}_seed_{seed}"
+                        f"_fewshot_{self.fewshots_num_examples}_similarity"
+                        f"{self.fewshots_w_semantic_similarity}"
+        if self.data_profiling:
+            report = ProfileReport(df=df, minimal=True)
+            report.to_file(f"{filename}.html")
+
+        if self.data_save:
+            df.to_csv(f"{filename}.csv")
+
+        result = [{"effective_argument": x} for x in df["text"].values.tolist()]
+        print(result[:3])
+        return result
+
+
+
+    # GENERATION #
+    # ---------- #
     def generate_for_prompts(self, ineffective_argument: str):
 
         result_dict = {}
-        if self.model_name == Generator._MODEL_CHATGPT_:
-            for k, prompt_template in self.prompt_dict.items():
-                chat_prompt = ChatPromptTemplate.from_messages(
-                    Generator.create_prompt_template(prompt_template.format(ideology=self.ideology)))
-                llm_chain = LLMChain(llm=self.local_llm, prompt=chat_prompt)
-                result_dict[k] = llm_chain.run(ineffective_argument=ineffective_argument)
-                result_dict[f"len_{k}"] = len(result_dict[k])
-                result_dict["len_orig"] = len(ineffective_argument)
-        else:
-            for k, prompt_template in self.prompt_dict.items():
-                template = prompt_template.format(ideology=self.ideology) +"\n    Argument: {ineffective_argument}\n    "
-                prompt = PromptTemplate(template=template, input_variables=["ineffective_argument"])
 
-                llm_chain = LLMChain(llm=self.local_llm, prompt=prompt)
-                result_dict[k] = llm_chain.run(ineffective_argument)
-                result_dict[f"len_{k}"] = len(result_dict[k])
-                result_dict["len_orig"] = len(ineffective_argument)
+        # Preparing PROMPTS 
+        for k, prompt_template in self.prompt_dict.items():
+            if self.use_fewshots:
+                template = prompt_template.format(ideology=self.ideology) +"\n    Argument: {ineffective_argument}\n    "
+                # prompt = PromptTemplate(template=template, input_variables=["ineffective_argument"])
+
+                example_prompt = PromptTemplate(input_variables=["effective_argument"], template="An Example of an effective argument: {effective_argument}")
+
+                prompt = FewShotPromptTemplate(examples= [self.examples.pop() for _ in range(0,self.fewshots_num_examples)], 
+                                               example_prompt=example_prompt, 
+                                               suffix=template, 
+                                               input_variables=["ineffective_argument"]
+                                               )
+            else: # 0 shot
+                if self.model_name == Generator._MODEL_CHATGPT_:
+                    prompt = ChatPromptTemplate.from_messages(
+                        Generator.create_prompt_template(prompt_template.format(ideology=self.ideology)))
+                else:
+                    template = prompt_template.format(ideology=self.ideology) +"\n    Argument: {ineffective_argument}\n    "
+                    prompt = PromptTemplate(template=template, input_variables=["ineffective_argument"])
+
+            llm_chain = LLMChain(llm=self.local_llm, prompt=prompt)
+            result_dict[k] = llm_chain.run(ineffective_argument=ineffective_argument)
+            result_dict[f"len_{k}"] = len(result_dict[k])
+            result_dict["len_orig"] = len(ineffective_argument)
+ 
 
         return result_dict
 
     def generate_all(self):
-        out_file = f"{self.out_file}{self.ideology}_{self.model_name.lower()}_2.jsonl"
+        fewshots_text = f"_{self.fewshots_num_examples}fewshots" if self.use_fewshots else "" 
+        fewshots_text = f"{fewshots_text}_with_similarity" if self.fewshots_w_semantic_similarity else fewshots_text
+        out_file = f"{self.out_file}{self.ideology}_{self.model_name.lower()}{fewshots_text}.jsonl"
 
         existing_indices = []
         if exists(out_file):

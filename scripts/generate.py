@@ -78,8 +78,4 @@ if __name__ == "__main__":
             args.with_similarity,
         )
 
-# nohup python3 scripts/generate_w_alpaca.py -i liberal  > logs/alpaca_0shot.log 2>&1 &
-# nohup python3 scripts/generate_w_alpaca.py -i conservative  > logs/cons_alpaca_0shot.log 2>&1 &
-
-
-# # nohup python3 scripts/generate_w_alpaca.py -i all -f -k 3 -m alpaca  > logs/alpaca_fewshots.log 2>&1 &
+# nohup python3 scripts/generate.py -i all -f -k 3 -m alpaca  > logs/alpaca_fewshots.log 2>&1 &

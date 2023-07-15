@@ -56,7 +56,7 @@ class Generator:
     verbose: int = 0
     trainingdata_profiling: bool = True
     _temp_flag: bool = True
-    
+
     _MODEL_CHATGPT_: ClassVar = "gpt-3.5-turbo"
     _MODEL_ALPACA_: ClassVar = "alpaca"
     _LIMIT_: ClassVar = 500
@@ -96,6 +96,7 @@ class Generator:
     # ---- End Helpers --- #
 
     def __post_init__(self):
+        print("********VERSION 56********")
         found = load_dotenv("/home/elba_ro/repos/github/conf22-style-transfer/.env")
         print(f"dotenv was found: {found}")
 

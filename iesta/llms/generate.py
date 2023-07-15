@@ -55,6 +55,8 @@ class Generator:
     fewshots_w_semantic_similarity: bool = False
     verbose: int = 0
     trainingdata_profiling: bool = True
+    _temp_flag: bool = True
+    
     _MODEL_CHATGPT_: ClassVar = "gpt-3.5-turbo"
     _MODEL_ALPACA_: ClassVar = "alpaca"
     _LIMIT_: ClassVar = 500
@@ -290,8 +292,14 @@ class Generator:
                         template=template,
                         input_variables=["ineffective_argument"],
                     )
-            print("****** prompt: ")
-            print(prompt.format(ineffective_argument=ineffective_argument))
+
+            # remove
+            if self._temp_flag:
+                print("****** prompt: ")
+                print(prompt.format(ineffective_argument=ineffective_argument))
+                self._temp_flag = False
+
+            # End of remove
             llm_chain = LLMChain(llm=self.local_llm, prompt=prompt)
             result_dict[k] = llm_chain.run(
                 ineffective_argument=ineffective_argument

@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "scripts/generate_w_alpaca.py", line 1, in <module>
+    from iesta.llms.generate import Generator
+  File "/home/elba_ro/.local/lib/python3.8/site-packages/iesta/llms/generate.py", line 1, in <module>
+    from langchain.llms import OpenAIChat
+  File "/home/elba_ro/.local/lib/python3.8/site-packages/langchain/__init__.py", line 6, in <module>
+    from langchain.agents import MRKLChain, ReActChain, SelfAskWithSearchChain
+  File "/home/elba_ro/.local/lib/python3.8/site-packages/langchain/agents/__init__.py", line 2, in <module>
+    from langchain.agents.agent import (
+  File "/home/elba_ro/.local/lib/python3.8/site-packages/langchain/agents/agent.py", line 16, in <module>
+    from langchain.agents.tools import InvalidTool
+  File "/home/elba_ro/.local/lib/python3.8/site-packages/langchain/agents/tools.py", line 8, in <module>
+    from langchain.tools.base import BaseTool, Tool, tool
+  File "/home/elba_ro/.local/lib/python3.8/site-packages/langchain/tools/__init__.py", line 44, in <module>
+    from langchain.tools.playwright import (
+  File "/home/elba_ro/.local/lib/python3.8/site-packages/langchain/tools/playwright/__init__.py", line 3, in <module>
+    from langchain.tools.playwright.click import ClickTool
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 939, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+KeyboardInterrupt

@@ -1,37 +1,22 @@
-from langchain.llms import OpenAIChat
-from langchain import LLMChain
-from langchain.text_splitter import CharacterTextSplitter,TokenTextSplitter
-from langchain.chains.mapreduce import MapReduceChain
-from langchain.prompts import PromptTemplate
+
 from langchain.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
-    AIMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
-from langchain.docstore.document import Document
-from langchain.chains.summarize import load_summarize_chain
-from langchain.prompts.few_shot import FewShotPromptTemplate
 
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
 import pandas as pd
-pd.set_option('display.max_colwidth', None)
 from tqdm.notebook import tqdm
 tqdm.pandas()
-from ast import literal_eval
-import random
-import re
 from langchain.chat_models import ChatOpenAI
-from torch import cuda, bfloat16 
 import transformers 
-from transformers import AutoTokenizer, AutoModelForCausalLM 
 from dotenv import load_dotenv, find_dotenv
-from langchain import HuggingFaceHub
 
-from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig, pipeline
+from transformers import ipeline
 from langchain.llms import HuggingFacePipeline
 from langchain import PromptTemplate, LLMChain
 from dotenv import load_dotenv, find_dotenv
@@ -71,7 +56,7 @@ class Generator():
     fewshots_num_examples: int = 1  # we use 1 to 3
     fewshots_w_semantic_similarity: bool = False
     verbose: int = 0
-    
+    trainingdata_profiling: bool = True
     _MODEL_CHATGPT_: ClassVar = "gpt-3.5-turbo"
     _MODEL_ALPACA_: ClassVar = "alpaca"
     _LIMIT_: ClassVar = 500
@@ -226,15 +211,12 @@ class Generator():
         print(f"Return dataset {name} with {len(dataset)} ")
 
         df = dataset.to_pandas().copy()
-        filename: str = f"{self.ideology}_training_{limit}_seed_{seed}"
-                        f"_fewshot_{self.fewshots_num_examples}_similarity"
-                        f"{self.fewshots_w_semantic_similarity}"
-        if self.data_profiling:
+        filename: str = f"{self.ideology}_training_{limit}_seed_{seed}_fewshot_{self.fewshots_num_examples}_similarity{self.fewshots_w_semantic_similarity}"
+        if self.trainingdata_profiling:
             report = ProfileReport(df=df, minimal=True)
             report.to_file(f"{filename}.html")
 
-        if self.data_save:
-            df.to_csv(f"{filename}.csv")
+        df.to_csv(f"{filename}.csv")
 
         result = [{"effective_argument": x} for x in df["text"].values.tolist()]
         print(result[:3])

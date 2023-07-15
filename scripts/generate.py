@@ -50,10 +50,17 @@ if __name__ == "__main__":
     print(args)
     if args.ideology == "all":
         print("FOR LIBERALS")
-        run("liberal", args.fewshots, args.examples_k, args.with_similarity)
+        run(
+            "liberal",
+            args.models,
+            args.fewshots,
+            args.examples_k,
+            args.with_similarity,
+        )
         print("FOR CONSERVATIVES")
         run(
             "conservative",
+            args.models,
             args.fewshots,
             args.examples_k,
             args.with_similarity,

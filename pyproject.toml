@@ -9,7 +9,7 @@ description='code for the paper IESTA'
 readme = "README.md"
 authors = [{ name = "Roxanne El Baff", email = "roxanne.elbaff@gmail.com" }]
 license = { file = "LICENSE" }
-keywords=['iesta', 'llm', 'style-transfer']
+#keywords=['iesta', 'llm', 'style-transfer']
 dependencies = [
     "pandas",
     "matplotlib",

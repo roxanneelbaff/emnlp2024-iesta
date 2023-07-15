@@ -40,7 +40,7 @@ from ydata_profiling import ProfileReport
 from langdetect import detect
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
-
+from transformers import AutoTokenizer, AutoModelForCausalLM 
 from typing import ClassVar
 
 
@@ -149,7 +149,7 @@ class Generator:
         return local_llm
 
     def get_data(self, effect="ineffective"):
-        limit = _LIMIT_
+        limit = Generator._LIMIT_
         seed = 2062021
         name: str = f"notaphoenix/debateorg_w_effect_for_{self.ideology}"
         dataset: Dataset = load_dataset(name, split="test")

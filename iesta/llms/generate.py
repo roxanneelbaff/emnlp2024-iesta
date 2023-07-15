@@ -265,7 +265,7 @@ class Generator:
 
                 example_prompt = PromptTemplate(
                     input_variables=["effective_argument"],
-                    template="An Example of an effective argument: {effective_argument}",
+                    template="Example of an argument that has an effective style: {effective_argument}",
                 )
 
                 prompt = FewShotPromptTemplate(

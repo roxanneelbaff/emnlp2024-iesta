@@ -16,7 +16,7 @@ from langchain.chat_models import ChatOpenAI
 import transformers 
 from dotenv import load_dotenv, find_dotenv
 
-from transformers import ipeline
+from transformers import pipeline
 from langchain.llms import HuggingFacePipeline
 from langchain import PromptTemplate, LLMChain
 from dotenv import load_dotenv, find_dotenv

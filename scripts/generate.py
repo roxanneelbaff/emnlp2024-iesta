@@ -5,7 +5,6 @@ import argparse
 def run(ideology, models, fewshots, examples_k, with_similarity):
     if fewshots:
         for k in range(3):
-            generator = None
             print(f" #### FOR K {k} ####")
             k = k+1
             if models == "all":
@@ -17,7 +16,7 @@ def run(ideology, models, fewshots, examples_k, with_similarity):
                                       fewshots_w_semantic_similarity=with_similarity
                                       )
                 generator.generate_all()
-                generator = None
+                #generator = None
                 generator = Generator(ideology=ideology,
                                       model_name=Generator._MODEL_CHATGPT_,
                                       trainingdata_profiling=True,

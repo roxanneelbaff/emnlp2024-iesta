@@ -1,4 +1,4 @@
-"""textmining package that uses existing libraries"""
+"""iesta package that uses existing libraries"""
 
 # __version__ = "0.3.0"
 
@@ -6,7 +6,9 @@ from pkg_resources import resource_filename
 import logging
 from pathlib import Path
 import os
+from dotenv import load_dotenv, find_dotenv
 
+filepath = resource_filename(__name__, ".env")
 
 logs_folder = os.path.join(os.path.dirname(__file__), "iesta-logs")
 Path(logs_folder).mkdir(parents=True, exist_ok=True)
@@ -33,3 +35,5 @@ f_handler.setFormatter(file_format)
 logger.addHandler(f_handler)
 
 logger.setLevel(logging.DEBUG)
+found = load_dotenv(find_dotenv())
+print(f"dotenv was {found}")

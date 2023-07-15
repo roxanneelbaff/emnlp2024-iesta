@@ -5,14 +5,10 @@ from langchain.prompts.chat import (
 )
 
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 import pandas as pd
 from tqdm.notebook import tqdm
 
-tqdm.pandas()
 from langchain.chat_models import ChatOpenAI
 import transformers
 from dotenv import load_dotenv, find_dotenv
@@ -20,7 +16,6 @@ from dotenv import load_dotenv, find_dotenv
 from transformers import pipeline
 from langchain.llms import HuggingFacePipeline
 from langchain import PromptTemplate, LLMChain
-from dotenv import load_dotenv, find_dotenv
 import torch
 
 from datasets import load_dataset, Dataset
@@ -42,7 +37,6 @@ from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
 from transformers import AutoTokenizer, AutoModelForCausalLM 
 from typing import ClassVar
-
 
 @dataclasses.dataclass
 class Generator:
@@ -100,7 +94,7 @@ class Generator:
     # ---- End Helpers --- #
 
     def __post_init__(self):
-        found = load_dotenv(find_dotenv())
+        found = load_dotenv("/home/elba_ro/repos/github/conf22-style-transfer/.env")
         print(f"dotenv was found: {found}")
 
         print("Initializing all prompt templates in variable prompt_dict..")
@@ -251,12 +245,15 @@ class Generator:
     # ---------- #
     def generate_for_prompts(self, ineffective_argument: str):
         result_dict = {}
-
+        print("generate_for_prompts called")
         # Preparing PROMPTS
-        examples = []
-        if len(self.examples) < self.fewshots_num_examples:
-            print("warning: ran out of examples, replenishing...") 
-            self.examples = self.get_examples(save=False)
+        local_examples = []
+        if self.use_fewshots:
+            if len(self.examples) < self.fewshots_num_examples:
+                print("warning: ran out of examples, replenishing...") 
+                self.examples = self.get_examples(save=False)
+
+            local_examples = [self.examples.pop() for _ in range(0, self.fewshots_num_examples)]
 
         for k, prompt_template in self.prompt_dict.items():
             if self.use_fewshots:
@@ -272,10 +269,7 @@ class Generator:
                 )
 
                 prompt = FewShotPromptTemplate(
-                    examples=examples if len(examples) > 0 else [
-                        self.examples.pop()
-                        for _ in range(0, self.fewshots_num_examples)
-                    ],
+                    examples=local_examples,
                     example_prompt=example_prompt,
                     suffix=template,
                     input_variables=["ineffective_argument"],
@@ -296,13 +290,16 @@ class Generator:
                         template=template,
                         input_variables=["ineffective_argument"],
                     )
-
+            print("****** prompt: ")
+            print(prompt.format(ineffective_argument=ineffective_argument))
             llm_chain = LLMChain(llm=self.local_llm, prompt=prompt)
             result_dict[k] = llm_chain.run(
                 ineffective_argument=ineffective_argument
             )
             result_dict[f"len_{k}"] = len(result_dict[k])
             result_dict["len_orig"] = len(ineffective_argument)
+            if self.use_fewshots:
+                result_dict["examples"] = local_examples
 
         return result_dict
 

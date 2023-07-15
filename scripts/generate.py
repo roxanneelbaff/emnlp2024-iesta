@@ -1,5 +1,6 @@
 from iesta.llms.generate import Generator
 import argparse
+from dotenv import load_dotenv, find_dotenv
 
 
 def run(ideology, models, fewshots, examples_k, with_similarity):
@@ -40,6 +41,9 @@ def run(ideology, models, fewshots, examples_k, with_similarity):
 
 
 if __name__ == "__main__":
+    found = load_dotenv(find_dotenv())
+    print(f"dotenv was found: {found}")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--ideology", type=str, default="all")
     parser.add_argument("-f", "--fewshots", action="store_true")

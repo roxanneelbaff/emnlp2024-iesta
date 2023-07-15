@@ -5,27 +5,32 @@ import argparse
 
 
 def upload(ideology, args):
-    data_obj = IESTAData(ideology=ideology, keep_labels = LABELS.EFF_INEFF, )
+    data_obj = IESTAData(
+        ideology=ideology,
+        keep_labels=LABELS.EFF_INEFF,
+    )
     hf = IESTAHuggingFace(data_obj, reload_preprocess=args.reload_preprocess)
     if args.is_for_style_classifier in ["yes", "all"]:
-        _ = hf.upload_w_labels(is_for_style_classifier=True, force_reload=args.force_reload)
+        _ = hf.upload_w_labels(
+            is_for_style_classifier=True, force_reload=args.force_reload
+        )
     if args.is_for_style_classifier in ["no", "all"]:
-        _ = hf.upload_w_labels(is_for_style_classifier=False, force_reload=args.force_reload)
+        _ = hf.upload_w_labels(
+            is_for_style_classifier=False, force_reload=args.force_reload
+        )
 
 
 def main():
-
     try:
-        
         parser = argparse.ArgumentParser()
-        parser.add_argument("-s", "--is_for_style_classifier",
-                            type=str,
-                            default="all")
-        parser.add_argument("-f", "--force_reload",
-                            action='store_true')  # reload from and to hf
+        parser.add_argument(
+            "-s", "--is_for_style_classifier", type=str, default="all"
+        )
+        parser.add_argument(
+            "-f", "--force_reload", action="store_true"
+        )  # reload from and to hf
         parser.add_argument("-i", "--ideology", type=str)
-        parser.add_argument("-r", "--reload_preprocess",
-                            action='store_true')  
+        parser.add_argument("-r", "--reload_preprocess", action="store_true")
         args = parser.parse_args()
         print(args)
         if args.ideology == "conservative" or args.ideology == "all":

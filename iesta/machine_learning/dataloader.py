@@ -552,14 +552,20 @@ def load_training_features_df(
         methodology=METHODOLOGY.EACH,
     )
 
-    feature_dfs = {}
-
     style_features_path = glob(
         f"{path}/{ideology}_style-features_5000/*.parquet"
     )
     transformer_features_path = glob(
         f"{path}/{ideology}_transformer-features_100/*.parquet"
     )
+
+    # LIWC
+    liwc_fpath = f"{path}/liwc22_{ideology.lower()}_training.csv"
+    liwc_df = pd.read_csv(liwc_fpath, index_col="idx")
+    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+    liwc_df = liwc_df.select_dtypes(include=numerics)
+    liwc_df.drop(columns=['Segment', 'round'], inplace=True)
+    liwc_df.columns = 'liwc_' + liwc_df.columns
 
     empath_mpqa_df = get_features_df(style_features_path, 5000, training_data)
     transformers_based_features_df = get_features_df(
@@ -569,10 +575,14 @@ def load_training_features_df(
     difference = transformers_based_features_df.columns.difference(
         empath_mpqa_df.columns
     )
-    feature_dfs = empath_mpqa_df.merge(
+    feature_df = empath_mpqa_df.merge(
         transformers_based_features_df[difference],
         right_index=True,
         left_index=True,
     )
-
-    return training_data, feature_dfs
+    feature_df = feature_df.merge(liwc_df,
+                                  right_index=True,
+                                  left_index=True,
+                                  )
+    
+    return training_data, feature_df

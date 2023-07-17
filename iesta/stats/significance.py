@@ -18,16 +18,11 @@ def _get_full_filename(
     features_code: str,
     independent_var: str,
     undersample: bool = False,
-    exclude_iv_vals: List = None,
 ):
-    excluded_str = ""
-    if exclude_iv_vals is not None and len(exclude_iv_vals) > 0:
-        excluded_str = f"_excluded-{'-'.join(exclude_iv_vals)}"
+    undersample_str = "_undersampled" if undersample else ""
 
-    undersample_str = f"_undersampled" if undersample else ""
-
-    file_path: str = ROOT_PATH + "{}{}_{}{}_{}".format(
-        ideology, undersample_str, features_code, excluded_str, independent_var
+    file_path: str = ROOT_PATH + "{}{}_{}_{}".format(
+        ideology, undersample_str, features_code,  independent_var
     )
 
     return file_path
@@ -39,12 +34,10 @@ def calc_sign_effects(
     features_code: str,
     independent_var: str = "effect",
     undersample: bool = False,
-    exclude_iv_vals: list = None,
     recalculate: bool = False,
 ) -> pd.DataFrame:
     filename = _get_full_filename(
-        ideology, features_code, independent_var, undersample, exclude_iv_vals
-    )
+        ideology, features_code, independent_var, undersample)
     result_df, detailed_df = nlpaf.inferential_stats._siginificance_calculated(
         filename
     )
@@ -52,15 +45,6 @@ def calc_sign_effects(
         return result_df, detailed_df
 
     df: pd.DataFrame = original_df.copy()
-
-    if exclude_iv_vals is not None and len(exclude_iv_vals) > 0:
-        print(
-            f"The IV has\n {df[independent_var].value_counts()}. Excluding {exclude_iv_vals}..."
-        )
-        df = df[~df[independent_var].isin(exclude_iv_vals)]
-        print(
-            f"After exclusion: \n {df[independent_var].value_counts()}. Excluding {exclude_iv_vals}..."
-        )
 
     assert len(df[independent_var].unique()) > 1
     assert independent_var == "effect" or independent_var == "binary_effect"
@@ -88,41 +72,40 @@ def calc_sign_effects(
 
 
 def run_all_significance_test(feature_dfs):
-    independent_vars = ["effect", "binary_effect"]
-    excluded_effects = [[], ["okay"]]
+    independent_vars = ["effect"]
+    #excluded_effects = [[], ["okay"]]
 
     undersample = [True, False]
     significance = {}
     for ideology in ideologies:
         for iv in independent_vars:
-            for excluded_effect in excluded_effects:
-                for us in undersample:
-                    print("Running {ideology} {iv} {excluded_effect}")
-                    excluded_str = (
-                        "_" + "_".join(excluded_effect)
-                        if len(excluded_effect) > 0
-                        else ""
-                    )
-                    undersample_str = "_undersampled" if us else ""
+            # for excluded_effect in excluded_effects:
+            for us in undersample:
+                print("Running {ideology} {iv} {excluded_effect}")
+                # excluded_str = (
+                #    "_" + "_".join(excluded_effect)
+                #    if len(excluded_effect) > 0
+                #    else ""
+                # )
+                undersample_str = "_undersampled" if us else ""
 
-                    features_df = feature_dfs[ideology]
-                    features_df = (
-                        features_df[
-                            ~features_df["effect"].isin(excluded_effect)
-                        ].copy()
-                        if len(excluded_effect) > 0
-                        else features_df
-                    )
-                    significance[
-                        f"{ideology}_{iv}{undersample_str}{excluded_str}_all_features"
-                    ] = iesta.stats.significance.calc_sign_effects(
-                        features_df,
-                        ideology,
-                        "all_features",
-                        iv,
-                        undersample=us,
-                        exclude_iv_vals=excluded_effect,
-                    )
+                features_df = feature_dfs[ideology]
+                #features_df = (
+                #    features_df[
+                #        ~features_df["effect"].isin(excluded_effect)
+                #    ].copy()
+                #    if len(excluded_effect) > 0
+                #    else features_df
+                #)
+                significance[
+                    f"{ideology}_{iv}{undersample_str}_all_features"
+                ] = iesta.stats.significance.calc_sign_effects(
+                    features_df,
+                    ideology,
+                    "all_features",
+                    iv,
+                    undersample=us,
+                )
 
                     # transformers_features_df  = feature_dfs[ideology]["transformers"]
                     # if len(excluded_effect) >0:

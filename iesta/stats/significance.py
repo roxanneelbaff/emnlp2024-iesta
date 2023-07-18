@@ -6,7 +6,10 @@ import iesta.utils
 import iesta.properties as prop
 import iesta.stats.significance
 
-ROOT_PATH = "../data/significant_test/"
+import os 
+
+ROOT_PATH = os.path.join(prop.ROOT_PATH, "significant_test")
+
 ideologies = [
     prop.CONSERVATIVE_IDEOLOGY.lower(),
     prop.LIBERAL_IDEOLOGY.lower(),
@@ -82,21 +85,11 @@ def run_all_significance_test(feature_dfs):
             # for excluded_effect in excluded_effects:
             for us in undersample:
                 print("Running {ideology} {iv} {excluded_effect}")
-                # excluded_str = (
-                #    "_" + "_".join(excluded_effect)
-                #    if len(excluded_effect) > 0
-                #    else ""
-                # )
+
                 undersample_str = "_undersampled" if us else ""
 
                 features_df = feature_dfs[ideology]
-                #features_df = (
-                #    features_df[
-                #        ~features_df["effect"].isin(excluded_effect)
-                #    ].copy()
-                #    if len(excluded_effect) > 0
-                #    else features_df
-                #)
+           
                 significance[
                     f"{ideology}_{iv}{undersample_str}_all_features"
                 ] = iesta.stats.significance.calc_sign_effects(

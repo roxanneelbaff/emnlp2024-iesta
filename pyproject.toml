@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "iesta"
-version = "1.3.58"
+version = "1.3.68"
 description='code for the paper IESTA'
 readme = "README.md"
 authors = [{ name = "Roxanne El Baff", email = "roxanne.elbaff@gmail.com" }]
@@ -19,7 +19,7 @@ dependencies = [
     "fastparquet>=0.8.3",
     "pyarrow>=8.0.0",
     "clean-text>=0.6.0",
-    "nlpaf>==2.1.0",
+    "nlpaf>=2.1.0",
     "unidecode==1.3.6",
     "ipywidgets==8.0.4",
     "imbalanced-learn>=0.10.1",

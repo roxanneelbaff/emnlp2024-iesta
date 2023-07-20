@@ -30,18 +30,20 @@ import dataclasses
 
 from datasets import load_dataset, Dataset
 from datasets.combine import concatenate_datasets
-from iesta.machine_learning.huggingface_loader import IESTAHuggingFace
 from ydata_profiling import ProfileReport
 from langdetect import detect
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
-from transformers import AutoTokenizer, AutoModelForCausalLM 
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from typing import ClassVar
+from langchain.llms import HuggingFaceTextGenInference
+
 
 @dataclasses.dataclass
 class Generator:
     ideology: str  # liberal or conservative
-    model_name: str  # gpt or alpaca
+    model_name: str  # gpt or alpaca llama-v2-70b-chat
+    root_path: str = ""
 
     data_limit: int = 500
     data_profiling: bool = False
@@ -59,6 +61,15 @@ class Generator:
 
     _MODEL_CHATGPT_: ClassVar = "gpt-3.5-turbo"
     _MODEL_ALPACA_: ClassVar = "alpaca"
+    _MODEL_LLAMA_V2_70B_: ClassVar = "llama-v2-70b-chat"
+    _MODEL_LLAMA_V2_7B_: ClassVar = "llama-v2-7b"
+    _MODEL_FALCON_INST_40B_: ClassVar = "falcon-40b"
+
+    RUNPOD_ID_DIC: ClassVar ={
+        _MODEL_LLAMA_V2_70B_: "nle29nkbxmmvnf",
+        _MODEL_FALCON_INST_40B_: "kab3zkyrnrugd1",
+        _MODEL_LLAMA_V2_7B_: "sx1co9yds7i7je"
+    }
     _LIMIT_: ClassVar = 500
 
     # HELPERS   #
@@ -96,8 +107,8 @@ class Generator:
     # ---- End Helpers --- #
 
     def __post_init__(self):
-        print("********VERSION 56********")
-        found = load_dotenv("/home/elba_ro/repos/github/conf22-style-transfer/.env")
+        print("********VERSION 64********")
+        found = load_dotenv(f"{self.root_path}/.env")
         print(f"dotenv was found: {found}")
 
         print("Initializing all prompt templates in variable prompt_dict..")
@@ -143,6 +154,23 @@ class Generator:
                 repetition_penalty=1.2,
             )
             local_llm = HuggingFacePipeline(pipeline=pipe)
+        else:  # if self.model_name == Generator._MODEL_LLAMA_V2_70B_:
+            pod_id = Generator.RUNPOD_ID_DIC[self.model_name]
+            print(pod_id)
+            # pod_id = "nle29nkbxmmvnf"
+            # print(pod_id)
+
+            inference_server_url = f"https://{pod_id}-80.proxy.runpod.net"
+            local_llm = HuggingFaceTextGenInference(
+                inference_server_url=inference_server_url,
+                max_new_tokens=1024,
+                top_k=10,
+                top_p=0.95,
+                typical_p=0.95,
+                temperature=0.01,
+                repetition_penalty=1.03,
+            )
+        print(type(local_llm))
         return local_llm
 
     def get_data(self, effect="ineffective"):
@@ -197,17 +225,37 @@ class Generator:
             df.to_csv(f"data/{self.ideology}_test_{limit}_seed_{seed}.csv")
         return dataset
 
-    def _run_test(self):
-        chat_prompt = ChatPromptTemplate.from_messages(
-            Generator.create_prompt_template(
-                self.prompt_dict["all"].format(ideology=self.ideology)
+    def _run_test(self, instructions: str = "", 
+                  input_prompt: str = "\nArgument: ",
+                  chatPrompt: bool = True):
+        if chatPrompt:
+            system_message_prompt = SystemMessagePromptTemplate.from_template(
+             instructions+self.prompt_dict["all"].format(ideology=self.ideology)
             )
-        )
+            human_template = input_prompt+"{ineffective_argument}"
+            human_message_prompt = HumanMessagePromptTemplate.from_template(
+                human_template
+            )
+            chat_prompt = ChatPromptTemplate.from_messages(
+                [system_message_prompt, human_message_prompt]
+            )
+        else:
+            template = (
+                self.prompt_dict["all"].format(ideology=self.ideology) + input_prompt +"{ineffective_argument}\n"
+                )
+
+            chat_prompt = PromptTemplate(
+                template=template,
+                input_variables=["ineffective_argument"],
+            )
 
         llm_chain = LLMChain(llm=self.local_llm, prompt=chat_prompt)
         result = llm_chain.run(
             ineffective_argument="Climate change "
             "litigations are now linked to human rights. "
+            "This does not make sense because climate "
+            "change is not caused by humans and we should "
+            "protect the rights of our fathers"
         )
 
         return result
@@ -253,10 +301,13 @@ class Generator:
         local_examples = []
         if self.use_fewshots:
             if len(self.examples) < self.fewshots_num_examples:
-                print("warning: ran out of examples, replenishing...") 
+                print("warning: ran out of examples, replenishing...")
                 self.examples = self.get_examples(save=False)
 
-            local_examples = [self.examples.pop() for _ in range(0, self.fewshots_num_examples)]
+            local_examples = [
+                self.examples.pop()
+                for _ in range(0, self.fewshots_num_examples)
+            ]
 
         for k, prompt_template in self.prompt_dict.items():
             if self.use_fewshots:
@@ -278,7 +329,7 @@ class Generator:
                     input_variables=["ineffective_argument"],
                 )
             else:  # 0 shot
-                if self.model_name == Generator._MODEL_CHATGPT_:
+                if self.model_name == Generator._MODEL_CHATGPT_ or self.model_name.startswith("llama-v2") or self.model_name.startswith("falcon"):
                     prompt = ChatPromptTemplate.from_messages(
                         Generator.create_prompt_template(
                             prompt_template.format(ideology=self.ideology)

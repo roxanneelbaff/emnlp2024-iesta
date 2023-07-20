@@ -501,6 +501,8 @@ class IESTAData:
         path = self._get_out_files_path()
         df_file = os.path.join(
             path, f"{self.ideology.lower()}_training.parquet"
+            #             r"C:\Users\elba_ro\Documents\projects\github\conf22-style-transfer\{self.ideology.lower()}_training.parquet"
+
         )
 
         if os.path.isfile(df_file) and not reload:
@@ -542,7 +544,7 @@ def load_training_data(
 
 
 def load_training_features_df(
-    ideology: str = "liberal", keep_labels=LABELS.EFF_INEFF
+    ideology: str = "Liberal", keep_labels=LABELS.EFF_INEFF
 ):  # ->Dict[str,pd.DataFrame] Dict[str, Dict[str, pd.DataFrame]]):
     path = "../data/extracted_features/"
 

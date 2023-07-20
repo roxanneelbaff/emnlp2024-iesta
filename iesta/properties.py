@@ -2,7 +2,7 @@
 
 import os
 
-ROOT_PATH = os.path.join(os.path.dirname(__file__), "..", "data")
+ROOT_PATH = os.path.join(r"C:\Users\elba_ro\Documents\projects\github\conf22-style-transfer", "data")
 DEBATEORG_USERS_JSON_PATH = os.path.join(ROOT_PATH, "debateorg", "users.json")
 DEBATEORG_DEBATES_JSON_PATH = os.path.join(
     ROOT_PATH, "debateorg", "debates.json"

@@ -30,6 +30,8 @@ dependencies = [
     "codecarbon>=2.1.4",
     "accelerate",
     "langdetect",
+    "python-dotenv",
+    "ydata-profiling"
 ]
 
 
@@ -51,5 +53,4 @@ repository = "https://github.com/roxanneelbaff/"
 
 [tool.black]
 line-length = 79
-include = [".env"]
 # to republish: flit build and the flit publish

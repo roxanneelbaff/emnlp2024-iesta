@@ -1,0 +1,25 @@
+feature,effective ineffective_liberal,absolute_effect_liberal,effective ineffective_conservative,absolute_effect_conservative,label,feature_type
+liwc_Dic,,,-0.04,0.04,conservative,liwc
+liwc_attention,,,0.04,0.04,conservative,liwc
+mpqa_causation,,,0.04,0.04,conservative,mpqa
+mpqa_inconsistency,,,0.04,0.04,conservative,mpqa
+liwc_polite,0.04,0.04,,,liberal,liwc
+liwc_prosocial,0.04,0.04,,,liberal,liwc
+liwc_AllPunc,0.05,0.05,,,liberal,liwc
+hedge_E_count,0.04,0.04,-0.07,0.07,opposite,hedge
+hedge_E_ratio,0.04,0.04,-0.07,0.07,opposite,hedge
+emotion_hartmann_joy_count,0.04,0.04,0.04,0.04,same,emotion
+hedge_N_count,0.04,0.04,0.04,0.04,same,hedge
+hedge_N_ratio,0.04,0.04,0.04,0.04,same,hedge
+liwc_male,0.04,0.04,0.04,0.04,same,liwc
+mpqa_args_count,0.04,0.04,0.04,0.04,same,mpqa
+mpqa_argumentative,0.04,0.04,0.04,0.04,same,mpqa
+liwc_shehe,0.05,0.05,0.04,0.04,same,liwc
+liwc_WC,0.04,0.04,0.05,0.05,same,liwc
+emotion_hartmann_neutral_count,0.05,0.05,0.05,0.05,same,emotion
+toxicity_neutral_count,0.05,0.05,0.05,0.05,same,toxicity
+hedge_D_count,0.06,0.06,0.05,0.05,same,hedge
+hedge_D_ratio,0.06,0.06,0.05,0.05,same,hedge
+liwc_OtherP,0.06,0.06,0.05,0.05,same,liwc
+hedge_I_count,0.11,0.11,0.09,0.09,same,hedge
+hedge_I_ratio,0.11,0.11,0.09,0.09,same,hedge

@@ -6,3 +6,4 @@ data/extracted_features/liwc_original/* filter=lfs diff=lfs merge=lfs -text
 data/extracted_features/liwc_original/* filter=lfs diff=lfs merge=lfs -text
 data/debateorg filter=lfs diff=lfs merge=lfs -text
 data/extracted_features/liwc22*.csv filter=lfs diff=lfs merge=lfs -text
+data/training filter=lfs diff=lfs merge=lfs -text

@@ -1,11 +1,10 @@
 import nlpaf.inferential_stats
 import nlpaf.data_processor
 import pandas as pd
-from typing import List
-import iesta.utils
 import iesta.properties as prop
-import iesta.stats.significance
-
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import MinMaxScaler
+from nlpaf.ml import preprocess
 import os 
 
 ROOT_PATH = os.path.join(prop.ROOT_PATH, "significant_test")
@@ -15,93 +14,91 @@ ideologies = [
     prop.LIBERAL_IDEOLOGY.lower(),
 ]
 
+# HELPERS
 
 def _get_full_filename(
     ideology: str,
-    features_code: str,
     independent_var: str,
-    undersample: bool = False,
+    normalize: str = None
 ):
-    undersample_str = "_undersampled" if undersample else ""
-
-    file_path: str = ROOT_PATH + "{}{}_{}_{}".format(
-        ideology, undersample_str, features_code,  independent_var
+    normalized_str = f"_{normalize.lower()}" if normalize is not None else ""
+    filename = "{}{}_{}".format(
+        ideology, normalized_str, independent_var
     )
+    file_path: str = os.path.join(ROOT_PATH, filename)
 
-    return file_path
+    return file_path, filename
 
 
 def calc_sign_effects(
     original_df: pd.DataFrame,
     ideology: str,
-    features_code: str,
     independent_var: str = "effect",
-    undersample: bool = False,
+    normalize: str = None,
     recalculate: bool = False,
 ) -> pd.DataFrame:
-    filename = _get_full_filename(
-        ideology, features_code, independent_var, undersample)
-    result_df, detailed_df = nlpaf.inferential_stats._siginificance_calculated(
-        filename
-    )
+    filepath, filename = _get_full_filename(
+        ideology,  independent_var, normalize)
+    result_df, detailed_df = nlpaf.inferential_stats._siginificance_calculated(filepath) if not recalculate else (None, None)
     if result_df is not None and detailed_df is not None:
         return result_df, detailed_df
 
     df: pd.DataFrame = original_df.copy()
 
-    assert len(df[independent_var].unique()) > 1
-    assert independent_var == "effect" or independent_var == "binary_effect"
-
     numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
     num_cols = df.select_dtypes(include=numerics).columns.to_list()
     num_cols.remove("round")
     cols = num_cols + [independent_var]
+    print(f"normalizing with {normalize}")
+    if normalize is not None:
+        print("normalizing...")
+        if normalize == "MinMaxScaler":
+            # clip outliers
+            print(f"Before clipping {len(df)}")
+            df, _ = preprocess.clip_outliers(df)
+            print(f"After clipping {len(df)}")
+        scaler = RobustScaler() if normalize == "RobustScaler" else MinMaxScaler()
+        df[num_cols] = scaler.fit_transform(df[num_cols])
+
+    assert len(df[independent_var].unique()) > 1
+    assert independent_var == "effect" or independent_var == "binary_effect"
 
     processed_df = df[cols].copy()
 
-    if undersample:
-        processed_df = nlpaf.data_processor.undersample(
-            df[cols],
-            replacement=False,
-            random_state=42,
-            sampling_strategy="not minority",
-        )
-        print(f"processed df length: {len(processed_df)}")
+    #    processed_df = nlpaf.data_processor.undersample(
+    #       df[cols],
+    #        replacement=False,
+    #        random_state=42,
+    #        sampling_strategy="not minority",
+    #    )
+    #    print(f"processed df length: {len(processed_df)}")
 
     assert len(processed_df) > 0
+    print(f"filepath {filepath}")
     return nlpaf.inferential_stats.significance(
-        processed_df, filename=filename, independent_var=independent_var
+        processed_df, filename=filepath, independent_var=independent_var
     )
 
 
 def run_all_significance_test(feature_dfs):
-    independent_vars = ["effect"]
-    #excluded_effects = [[], ["okay"]]
+    independent_var = "effect"
 
-    undersample = [True, False]
     significance = {}
     for ideology in ideologies:
-        for iv in independent_vars:
-            # for excluded_effect in excluded_effects:
-            for us in undersample:
-                print("Running {ideology} {iv} {excluded_effect}")
+        for normalize in [None, "RobustScaler", "MinMaxScaler"]:
+            print(f"Running {ideology} - normalize:{normalize}")
 
-                undersample_str = "_undersampled" if us else ""
+            features_df = feature_dfs[ideology]
 
-                features_df = feature_dfs[ideology]
-           
-                significance[
-                    f"{ideology}_{iv}{undersample_str}_all_features"
-                ] = iesta.stats.significance.calc_sign_effects(
-                    features_df,
-                    ideology,
-                    "all_features",
-                    iv,
-                    undersample=us,
-                )
+            significance[
+                _get_full_filename(ideology,
+                                   independent_var,
+                                   normalize)[1]
+            ] = calc_sign_effects(
+                features_df,
+                ideology,
+                independent_var,
+                normalize=normalize
+            )
 
-                    # transformers_features_df  = feature_dfs[ideology]["transformers"]
-                    # if len(excluded_effect) >0:
-                    #    transformers_features_df  = transformers_features_df[~transformers_features_df[iv].isin(excluded_effect)]
-                    # significance[f'{ideology}_{iv}{undersample_str}{excluded_str}_transformers'] =  iesta.stats.significance.calc_sign_effects(transformers_features_df, ideology, "transformers", iv, undersample= us, exclude_iv_vals = excluded_effect)
     return significance

@@ -1,8 +1,8 @@
 # Files and folders paths
 
 import os
-
-ROOT_PATH = os.path.join(r"C:\Users\elba_ro\Documents\projects\github\conf22-style-transfer", "data")
+# "C:\Users\elba_ro\Documents\projects\github\conf22-style-transfer"
+ROOT_PATH = os.path.join(r"..", "data")
 DEBATEORG_USERS_JSON_PATH = os.path.join(ROOT_PATH, "debateorg", "users.json")
 DEBATEORG_DEBATES_JSON_PATH = os.path.join(
     ROOT_PATH, "debateorg", "debates.json"
@@ -59,3 +59,6 @@ IDEOLOLGY_LST = [
     CONSERVATIVE_IDEOLOGY.lower(),
     LIBERAL_IDEOLOGY.lower(),
 ]
+
+LONG_LIBERAL_TXT_INDX = [2472, 30429, 30428, 50796, 25960, 207, 8142, 46764, 18639, 45176, 19562, 8136]
+LONG_CONSERVATIVE_TXT_INDX = [44833, 12198, 44834, 28829, 14753]

@@ -586,5 +586,7 @@ def load_training_features_df(
                                   right_index=True,
                                   left_index=True,
                                   )
-    
+    print("excluding very long texts")
+    excluded_idx = prop.LONG_LIBERAL_TXT_INDX if ideology == "Liberal" else prop.LONG_CONSERVATIVE_TXT_INDX
+    feature_df = feature_df.loc[~feature_df.index.isin(excluded_idx)]
     return training_data, feature_df

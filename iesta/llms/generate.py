@@ -137,31 +137,12 @@ class Generator:
             df.to_csv(f"data/{self.ideology}_test_{limit}_seed_{seed}.csv")
         return dataset
 
-    def _run_test(self, instructions: str = "", 
-                  input_prompt: str = "\nArgument: ",
+    def _run_test(self, 
                   chatPrompt: bool = True):
-        if chatPrompt:
-            system_message_prompt = SystemMessagePromptTemplate.from_template(
-             instructions+self.prompt_dict["all"].format(ideology=self.ideology)
-            )
-            human_template = input_prompt+"{ineffective_argument}"
-            human_message_prompt = HumanMessagePromptTemplate.from_template(
-                human_template
-            )
-            chat_prompt = ChatPromptTemplate.from_messages(
-                [system_message_prompt, human_message_prompt]
-            )
-        else:
-            template = (
-                self.prompt_dict["all"].format(ideology=self.ideology) + input_prompt +"{ineffective_argument}\n"
-                )
 
-            chat_prompt = PromptTemplate(
-                template=template,
-                input_variables=["ineffective_argument"],
-            )
+        instructions = self.prompt_dict["all"].format(ideology=self.ideology) 
 
-        llm_chain = LLMChain(llm=self.llm_model.llm, prompt=chat_prompt)
+        llm_chain = LLMChain(llm=self.llm_model.llm, prompt=self.llm_model.get_prompt_template(instructions))
         result = llm_chain.run(
             ineffective_argument="Climate change "
             "litigations are now linked to human rights. "

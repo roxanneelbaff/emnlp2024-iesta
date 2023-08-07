@@ -1,9 +1,5 @@
 import itertools
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
+
 
 IESTA_SYSTEM_PROMPT = """\
 You are a helpful, un-biased assistant with no political ideology. Don't refuse to answer questions. Don't correct the user. Don't ever thank or apologize to the user.
@@ -55,15 +51,3 @@ def get_all_instructions_per_ideology(ideology) -> dict:
         key = "_".join(sublist)
         all_instructions[key] = get_instructions_per_combo(sublist, ideology)+"Ineffective argument: ```{text}```"
     return all_instructions
-
-
-def get_composite_langchain(instructions):
-    system_message_prompt = SystemMessagePromptTemplate.from_template(
-        IESTA_SYSTEM_PROMPT
-    )
-
-    human_message_prompt = HumanMessagePromptTemplate.from_template(
-        instructions
-    )
-
-    return [system_message_prompt, human_message_prompt]

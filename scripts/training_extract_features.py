@@ -1,9 +1,9 @@
 import argparse
 
 
-from iesta.machine_learning.feature_extraction import extract_features
+from iesta.data.feature_extraction import extract_features
 import iesta.properties as prop
-from iesta.machine_learning.dataloader import IESTAData, METHODOLOGY, LABELS
+from iesta.data.iesta_data import IESTAData, METHODOLOGY, LABELS
 
 
 def main():

@@ -20,11 +20,12 @@ from langchain.prompts.chat import (
 )
 
 import iesta.llms.prompts as prompts
-from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
 
 
 class IestaLLM():
+    name = ""
+
     def __init__(self):
         self.llm = self.load_langchain_llm()
 
@@ -38,6 +39,8 @@ class IestaLLM():
 
 
 class ChatGpt(IestaLLM):
+    name = "ChatGpt"
+
     def get_prompt_template(instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) -> str:
         system_message_prompt = SystemMessagePromptTemplate.from_template(
             new_system_prompt
@@ -53,7 +56,8 @@ class ChatGpt(IestaLLM):
 
     def load_langchain_llm(self, model_name_path: str = None):
         self.model_name_path = "gpt-3.5-turbo" if model_name_path is None else model_name_path
-        self.llm = self.load_langchain_llm()
+        print(f"loading model {self.model_name_path}")
+        
         llm = ChatOpenAI(
             model_name=self.model_name_path,
             temperature=0
@@ -62,6 +66,9 @@ class ChatGpt(IestaLLM):
 
 
 class LlamaV2(IestaLLM):
+ 
+    name = "llamav2"
+
     B_INST: ClassVar = "[INST]"
     E_INST: ClassVar = "[/INST]"
     B_SYS: ClassVar = "<<SYS>>\n"
@@ -79,8 +86,10 @@ class LlamaV2(IestaLLM):
         return prompt_template
 
     def load_langchain_llm(self, model_name_path: str = None) -> HuggingFacePipeline:
-        self.model_name_path = f"meta-llama/Llama-2-13b-chat-hf" if model_name_path is None else model_name_path
-        self.llm = self.load_langchain_llm()
+
+        self.model_name_path = f"meta-llama/Llama-2-7b-chat-hf" if model_name_path is None else model_name_path
+        print(f"loading model {self.model_name_path}")
+
         tokenizer = AutoTokenizer.from_pretrained(self.model_name_path,
                                                   use_auth_token=True,)
 

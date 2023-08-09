@@ -2,7 +2,7 @@ from typing import ClassVar
 from datasets import load_dataset
 from tqdm import tqdm
 from datasets.dataset_dict import Dataset, DatasetDict
-from iesta.machine_learning.dataloader import IESTAData
+from iesta.data.iesta_data import IESTAData
 import dataclasses
 import os
 import pandas as pd

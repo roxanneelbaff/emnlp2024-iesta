@@ -8,10 +8,10 @@ import os
 
 import iesta
 import iesta.utils as utils
-import iesta.processor as proc
+import iesta.data.debateorg_processor as proc
 import iesta.properties as properties
 import pandas as pd
-from iesta.machine_learning import dataloader
+from iesta.data import iesta_data
 import cleantext
 import iesta.properties as prop
 from tqdm import tqdm
@@ -78,7 +78,7 @@ def apply_add_prev_arg(row, original_df):
     p_name = row["p_name"]
     debate_round = row["round"]
 
-    previous_opposite_arg = dataloader.get_previous_opposite_arg(
+    previous_opposite_arg = iesta_data.get_previous_opposite_arg(
         original_df, debate_id, p_name, debate_round
     )
     row[
@@ -138,7 +138,7 @@ class IESTAData:
     data_df: pd.DataFrame = None
     pivot_df: pd.DataFrame = None
 
-    # evaluation_classfier_data_flag:int = dataloader.IESTAData._WITHOUT_EVAL_CLASSIFIER
+    # evaluation_classfier_data_flag:int = iesta_data.IESTAData._WITHOUT_EVAL_CLASSIFIER
 
     _ALL_DATA_: ClassVar = 0
     _ONLY_EVAL_CLASSIFIER_: ClassVar = 1
@@ -466,7 +466,7 @@ class IESTAData:
                     ].copy()
 
                     temp_df = temp_df.apply(
-                        dataloader.apply_add_rounds,
+                        iesta_data.apply_add_rounds,
                         args=(df_,),
                         axis=1,
                     )
@@ -477,7 +477,7 @@ class IESTAData:
             elif self.methodology in [METHODOLOGY.CURRENT_PREVIOUS]:
                 # for group, df_ in data_w_splits_df.groupby(["debate_id", "round"]):
                 df_ = effect_split_df.apply(
-                    dataloader.apply_add_prev_arg,
+                    iesta_data.apply_add_prev_arg,
                     args=(data_w_splits_df,),
                     axis=1,
                 )
@@ -492,7 +492,7 @@ class IESTAData:
 
         df = pd.concat(result_df_lst)
         df.index.name = "idx"
-        # df= df.apply(dataloader._apply_clean_txt, args=(text_col_name,) , axis=1)
+        # df= df.apply(iesta_data._apply_clean_txt, args=(text_col_name,) , axis=1)
         df.to_parquet(df_file, index=True)
         return df, pd.crosstab(df["split"], df["effect"]), df_file
 
@@ -526,7 +526,7 @@ class IESTAData:
 
 ################### GENERIC FUNCTIONS ###################
 from glob import glob
-from iesta.machine_learning.feature_extraction import get_features_df
+from iesta.data.feature_extraction import get_features_df
 
 
 def load_training_data(

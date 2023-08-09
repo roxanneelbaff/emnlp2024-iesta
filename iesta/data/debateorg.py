@@ -1,7 +1,7 @@
 import pandas as pd
 import glob
-from . import properties
-from . import utils
+from iesta import properties
+from iesta import utils
 import pathlib
 from tqdm import tqdm
 

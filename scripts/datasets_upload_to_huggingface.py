@@ -1,5 +1,5 @@
-from iesta.machine_learning.dataloader import IESTAData, LABELS
-from iesta.machine_learning.huggingface_loader import IESTAHuggingFace
+from iesta.data.iesta_data import IESTAData, LABELS
+from iesta.data.huggingface_loader import IESTAHuggingFace
 
 import argparse
 

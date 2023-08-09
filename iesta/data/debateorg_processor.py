@@ -1,7 +1,7 @@
 import pandas as pd
 
 from iesta import properties
-from iesta import loader
+from iesta.data import debateorg
 import os
 import collections
 from tqdm import tqdm
@@ -13,7 +13,7 @@ from tqdm import tqdm
 #       No            Provocative          Ineffective
 class Process:
     def __init__(self):
-        self.loader = loader.Loader()
+        self.loader = debateorg.Loader()
         self.loader.get_users()
         self.loader.get_debates()
         self.vote_w_effect_df = self.get_votes_w_effect()

@@ -21,7 +21,7 @@ import torch
 from datasets import load_dataset, Dataset
 from iesta.llms import prompts
 
-from iesta.machine_learning.huggingface_loader import IESTAHuggingFace
+from iesta.data.huggingface_loader import IESTAHuggingFace
 from ydata_profiling import ProfileReport
 import json
 import pandas as pd
@@ -46,17 +46,16 @@ class Generator:
     ideology: str  # liberal or conservative
     llm_model: IestaLLM  # gpt or alpaca llama-v2-70b-chat
     root_path: str = ""
-
-    data_limit: int = 500
     
-    seed: int = 2062021
-
-    out_file: str = "data/llms_out/new/"
-
     n_shots: int = 0  # we use 1 to 3
     flag_profile_training_data: bool = True
     flag_profile_test_data: bool = False
-    data_save: bool = False
+    data_save: bool = True
+
+
+    data_limit: int = 500
+    out_file: str = "llms_out/new/"
+    seed: int = 2062021
     _temp_flag: bool = True
 
 
@@ -65,6 +64,9 @@ class Generator:
 
     def __post_init__(self):
         print("********VERSION********")
+        if self.root_path is None: self.root_path = "../data/"
+        self.out_file = f"{self.root_path}{self.out_file}"
+
         found = load_dotenv(f"{self.root_path}/.env")
         print(f"dotenv was found: {found}")
 
@@ -129,22 +131,21 @@ class Generator:
         # dataset = dataset.map(lambda example, idx: {"id": idx, **example}, with_indices=True)
 
         df = dataset.to_pandas().copy()
-        if self.data_profiling:
+        if self.flag_profile_test_data:
             report = ProfileReport(df=df, minimal=False)
-            report.to_file(f"{self.ideology}_test_{limit}_seed_{seed}")
+            report.to_file(f"{self.root_path}llms/data_profile_{self.ideology}_test{limit}_seed{seed}.html")
 
         if self.data_save:
-            df.to_csv(f"data/{self.ideology}_test_{limit}_seed_{seed}.csv")
+            df.to_csv(f"{self.root_path}llms/data_{self.ideology}_test{limit}_seed{seed}.csv")
         return dataset
 
-    def _run_test(self, 
-                  chatPrompt: bool = True):
+    def _run_test(self):
 
         instructions = self.prompt_dict["all"].format(ideology=self.ideology) 
 
         llm_chain = LLMChain(llm=self.llm_model.llm, prompt=self.llm_model.get_prompt_template(instructions))
         result = llm_chain.run(
-            ineffective_argument="Climate change "
+            test="Climate change "
             "litigations are now linked to human rights. "
             "This does not make sense because climate "
             "change is not caused by humans and we should "
@@ -194,9 +195,9 @@ class Generator:
                             f"_{self.n_shots}shot_{category}"
             if self.trainingdata_profiling:
                 report = ProfileReport(df=df, minimal=True)
-                report.to_file(f"data/llms_out/fewshot_examples/{filename}.html")
+                report.to_file(f"{self.root_path}llms_out/fewshot_examples/{filename}.html")
 
-            df.to_csv(f"data/llms_out/fewshot_examples/{filename}.csv")
+            df.to_csv(f"{self.root_path}llms_out/fewshot_examples/{filename}.csv")
             examples_per_category[category] =  [
                 {"effective_argument": x} for x in df["text"].values.tolist()
             ]
@@ -212,15 +213,16 @@ class Generator:
 
         assert (self.n_shots > 0 and category is not None) or self.n_shots == 0
 
-        local_examples = local_examples = [
+        local_examples = [
             self.examples[category].pop()
             for _ in range(0, self.n_shots)
-        ] if self.n_shots > 0 and self.examples is not None and len(self.examples[category]) > 0 
+        ] if self.n_shots > 0 and self.examples is not None and len(self.examples[category]) > 0 else []
 
 
         for k, instructions in self.prompt_dict.items():
             if self.n_shots > 0:
-
+                if len(local_examples) == 0:
+                    print("ERROR!!! No examples left!!!")
                 example_prompt = PromptTemplate(
                     input_variables=["effective_argument"],
                     template="This is an example of an effective argument: {effective_argument}",
@@ -253,14 +255,9 @@ class Generator:
 
         return result_dict
 
-    def generate_all(self):
-        fewshots_text = (
-            f"_{self.n_shots}shots"
-            if self.n_shots > 0
-            else ""
-        )
+    def generate_all(self, limit: int = -1):
 
-        out_file = f"{self.out_file}{self.ideology}_{self.model_name.lower()}{fewshots_text}.jsonl"
+        out_file = f"{self.out_file}{self.ideology}_{self.llm_model.name.lower()}_{self.n_shots}shot.jsonl"
 
         existing_indices = []
         if exists(out_file):
@@ -277,6 +274,7 @@ class Generator:
             add_new_l = True
 
         with open(out_file, "a") as file:
+            counter = 0
             for datapoint in tqdm(self.filtered_dataset):
                 try:
                     promt_generated_dict = self.generate_for_prompts(
@@ -292,3 +290,6 @@ class Generator:
                     print(
                         f"Failed to get a response for ID: {datapoint['idx']}"
                     )
+                counter = counter + 1
+                if counter >= limit and limit > -1:
+                    break

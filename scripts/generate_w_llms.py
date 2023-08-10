@@ -14,8 +14,9 @@ def run(ideology, models, examples_k, limit):
             generator = Generator(
                 ideology=ideology,
                 llm_model=iestal_model,
-                trainingdata_profiling=True,
-                fewshots_num_examples=k,
+                flag_profile_training_data=False,
+                flag_profile_test_data=False, n_shots=k,
+                root_path="data/"
             )
             generator.generate_all(limit=limit)
 
@@ -37,10 +38,10 @@ if __name__ == "__main__":
 
     for ideology in ideologies:
         run(
-            args.ideology,
+            ideology,
             args.models,
             args.examples_k,
             args.limit
         )
 
-# nohup python3 scripts/generate.py -i all -k 1 -m all -l 2  > logs/all_fewshots.log 2>&1 &
+# nohup python3 scripts/generate.py -i all -k 1 -m chatgpt -l 2  > logs/all_fewshots.log 2>&1 &

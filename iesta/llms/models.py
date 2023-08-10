@@ -34,14 +34,18 @@ class IestaLLM():
         pass
 
     @abstractmethod
-    def get_prompt_template(instruction: str, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
+    def get_prompt_template(self, instruction: str, 
+                            new_system_prompt: str ):
+        print("should never be called")
         pass
 
 
 class ChatGpt(IestaLLM):
     name = "ChatGpt"
 
-    def get_prompt_template(instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) -> str:
+    def get_prompt_template(self, instruction: str,
+                            new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
+        
         system_message_prompt = SystemMessagePromptTemplate.from_template(
             new_system_prompt
         )
@@ -52,6 +56,7 @@ class ChatGpt(IestaLLM):
         prompt = ChatPromptTemplate.from_messages(
              [system_message_prompt, human_message_prompt]
             )
+        print(f"*** prompt WITHIN {prompt}")
         return prompt
 
     def load_langchain_llm(self, model_name_path: str = None):
@@ -74,7 +79,7 @@ class LlamaV2(IestaLLM):
     B_SYS: ClassVar = "<<SYS>>\n"
     E_SYS: ClassVar = "\n<</SYS>>\n\n"
 
-    def get_prompt_template(instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) -> str:
+    def get_prompt_template(self, instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) :
         SYSTEM_PROMPT = LlamaV2.B_SYS + new_system_prompt + LlamaV2.E_SYS
         prompt_str = LlamaV2.B_INST + SYSTEM_PROMPT + instruction + LlamaV2.E_INST
 
@@ -87,16 +92,14 @@ class LlamaV2(IestaLLM):
 
     def load_langchain_llm(self, model_name_path: str = None) -> HuggingFacePipeline:
 
-        self.model_name_path = f"meta-llama/Llama-2-7b-chat-hf" if model_name_path is None else model_name_path
+        self.model_name_path = "meta-llama/Llama-2-7b-chat-hf" if model_name_path is None else model_name_path
         print(f"loading model {self.model_name_path}")
 
-        tokenizer = AutoTokenizer.from_pretrained(self.model_name_path,
-                                                  use_auth_token=True,)
+        tokenizer = AutoTokenizer.from_pretrained(self.model_name_path,)
 
         model = AutoModelForCausalLM.from_pretrained(self.model_name_path,
                                                      device_map='auto',
                                                      torch_dtype=torch.float16,
-                                                     use_auth_token=True,
                                                      )
         pipe = pipeline("text-generation",
                         model=model,
@@ -107,7 +110,6 @@ class LlamaV2(IestaLLM):
                         do_sample=True,
                         top_k=30,
                         num_return_sequences=1,
-                        temperature=0.1,
                         eos_token_id=tokenizer.eos_token_id,
                         )
         

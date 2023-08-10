@@ -29,7 +29,6 @@ from tqdm import tqdm
 from os.path import exists
 import dataclasses
 
-from datasets import load_dataset, Dataset
 from datasets.combine import concatenate_datasets
 from ydata_profiling import ProfileReport
 from langdetect import detect
@@ -45,14 +44,11 @@ import datasets
 class Generator:
     ideology: str  # liberal or conservative
     llm_model: IestaLLM  # gpt or alpaca llama-v2-70b-chat
-    root_path: str = ""
-    
+    root_path: str = None
     n_shots: int = 0  # we use 1 to 3
     flag_profile_training_data: bool = True
     flag_profile_test_data: bool = False
     data_save: bool = True
-
-
     data_limit: int = 500
     out_file: str = "llms_out/new/"
     seed: int = 2062021
@@ -72,10 +68,6 @@ class Generator:
 
         print("Initializing all prompt templates in variable prompt_dict..")
         self.prompt_dict = prompts.get_all_instructions_per_ideology(self.ideology)
-
-        print(
-            f"Initializing LLM for {self.model_name} in variable local_llm..."
-        )
         
         print(
             f"Getting filtered dataset top {self.data_limit} in variable"
@@ -86,9 +78,8 @@ class Generator:
         if self.n_shots > 0:
             self.examples = self.get_examples()
 
-
     def get_data(self, effect="ineffective"):
-        limit = Generator._LIMIT_
+
         seed = 2062021
         name: str = f"notaphoenix/debateorg_w_effect_for_{self.ideology}"
         dataset: Dataset = load_dataset(name, split="test")
@@ -96,8 +87,8 @@ class Generator:
             lambda x: x["label"] == IESTAHuggingFace._LABEL2ID_[effect]
         ).shuffle(seed=seed)
 
-        if len(dataset) > limit:
-            dataset = dataset.select(range(limit))
+        if len(dataset) > self.data_limit:
+            dataset = dataset.select(range(self.data_limit))
 
         print(f"{len(dataset)} before len filter")
         dataset = dataset.filter(
@@ -108,7 +99,7 @@ class Generator:
         )
         print(f"{len(dataset)} after len filter")
 
-        while len(dataset) < limit:
+        while len(dataset) < self.data_limit:
             idxes = dataset.to_pandas()["idx"].values.tolist()
             dataset_extra: Dataset = load_dataset(name, split="test")
             dataset_extra = dataset_extra.filter(
@@ -122,7 +113,7 @@ class Generator:
                 lambda x: x["label"] == IESTAHuggingFace._LABEL2ID_[effect]
                 and ["idx"] not in idxes
             ).shuffle(seed=seed)
-            dataset_extra = dataset_extra.select(range(limit - len(dataset)))
+            dataset_extra = dataset_extra.select(range(self.data_limit - len(dataset)))
             print(f"{len(dataset_extra)} of extra")
             dataset = concatenate_datasets([dataset, dataset_extra])
 
@@ -133,15 +124,15 @@ class Generator:
         df = dataset.to_pandas().copy()
         if self.flag_profile_test_data:
             report = ProfileReport(df=df, minimal=False)
-            report.to_file(f"{self.root_path}llms/data_profile_{self.ideology}_test{limit}_seed{seed}.html")
+            report.to_file(f"{self.root_path}llms_out/data_profile_{self.ideology}_test{self.data_limit}_seed{seed}.html")
 
         if self.data_save:
-            df.to_csv(f"{self.root_path}llms/data_{self.ideology}_test{limit}_seed{seed}.csv")
+            df.to_csv(f"{self.root_path}llms_out/data_{self.ideology}_test{self.data_limit}_seed{seed}.csv")
         return dataset
 
     def _run_test(self):
 
-        instructions = self.prompt_dict["all"].format(ideology=self.ideology) 
+        instructions = self.prompt_dict["all"]
 
         llm_chain = LLMChain(llm=self.llm_model.llm, prompt=self.llm_model.get_prompt_template(instructions))
         result = llm_chain.run(
@@ -159,7 +150,7 @@ class Generator:
         if self.n_shots == 0:
             return
         
-        limit = Generator._LIMIT_ * self.n_shots
+        limit = self.data_limit * self.n_shots
         seed = self.seed
 
         name: str = f"notaphoenix/debateorg_w_effect_for_{self.ideology}"
@@ -193,7 +184,7 @@ class Generator:
             df = category_examples.to_pandas().copy()
             filename: str = f"{self.ideology}_training_{limit}_seed{seed}" \
                             f"_{self.n_shots}shot_{category}"
-            if self.trainingdata_profiling:
+            if self.flag_profile_training_data:
                 report = ProfileReport(df=df, minimal=True)
                 report.to_file(f"{self.root_path}llms_out/fewshot_examples/{filename}.html")
 
@@ -218,7 +209,6 @@ class Generator:
             for _ in range(0, self.n_shots)
         ] if self.n_shots > 0 and self.examples is not None and len(self.examples[category]) > 0 else []
 
-
         for k, instructions in self.prompt_dict.items():
             if self.n_shots > 0:
                 if len(local_examples) == 0:
@@ -231,11 +221,15 @@ class Generator:
                 prompt = FewShotPromptTemplate(
                     examples=local_examples,
                     example_prompt=example_prompt,
-                    suffix=self.llm_model.get_prompt_template(instructions.format(ideology=self.ideology)),
+                    suffix=self.llm_model.get_prompt_template(instructions),
                     input_variables=["text"],
                 )
             else:  # 0 shot
-                prompt = self.llm_model.get_prompt_template(instructions.format(ideology=self.ideology))
+                print(f"-- 0 shot Prompt: \n{instructions} --")
+                prompt = self.llm_model.get_prompt_template(instructions)
+                print(f"prompt: {prompt}")
+                
+
 
             # remove
             if self._temp_flag:
@@ -243,7 +237,6 @@ class Generator:
                 print(prompt.format(text=ineffective_argument))
                 self._temp_flag = False
 
-            # End of remove
             llm_chain = LLMChain(llm=self.llm_model.llm, prompt=prompt)
             result_dict[k] = llm_chain.run(
                 text=ineffective_argument
@@ -286,7 +279,7 @@ class Generator:
                     file.write(f"{nline}{json.dumps(promt_generated_dict)}")
                     add_new_l = True
                 except Exception as e:
-                    print(e)
+                    print(f"exception {e}")
                     print(
                         f"Failed to get a response for ID: {datapoint['idx']}"
                     )

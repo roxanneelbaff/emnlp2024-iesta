@@ -22,3 +22,4 @@ einops
 huggingface_hub>=0.11.1
 comet_ml>=3.32.6
 codecarbon>=2.1.4
+openai

@@ -38,6 +38,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from typing import ClassVar
 from langchain.llms import HuggingFaceTextGenInference
 
+from iesta.llms.steering_layer import SteeringLayer
+
 
 @dataclasses.dataclass
 class Generator:

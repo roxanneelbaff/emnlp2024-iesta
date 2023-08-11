@@ -163,33 +163,37 @@ class Generator:
         ).shuffle(seed=seed)
 
         category_counts = self.filtered_dataset.to_pandas()['category'].value_counts().to_frame('counts')
-        for category, count_row in category_counts.iterrows():
+        for original_category, count_row in category_counts.iterrows():
+
+            # No movies in training, get from similar category, art
+            category = "Arts" if original_category in ["Movies", "Music"] else  original_category
+
             count = count_row['counts']
             _dataset = dataset.filter(
                 lambda x: x["category"] == category
             )
+            print(f"category {original_category} has {len(_dataset)}")
             category_examples = _dataset
             if len(category_examples) > count:
                 category_examples = category_examples.select(range(count))
             
             while len(category_examples) < count:
                 reselect_num = min(len(_dataset), (count-len(category_examples)))
-                
-                category_examples = datasets.concatenate(category_examples,
-                                                         category_examples.select(range(reselect_num))
-                                                         )
-
-            print(f"{len(category_examples)}  length for category {category} with test # {count}")
+                print("reselecting")
+                category_examples = datasets.concatenate_datasets([category_examples,
+                                                                   category_examples.select(range(reselect_num))]
+                                                                  )
+            print(f"category {original_category} done with {len(category_examples)}/{count}")
 
             df = category_examples.to_pandas().copy()
             filename: str = f"{self.ideology}_training_{limit}_seed{seed}" \
-                            f"_{self.n_shots}shot_{category}"
+                            f"_{self.n_shots}shot_{original_category}"
             if self.flag_profile_training_data:
                 report = ProfileReport(df=df, minimal=True)
                 report.to_file(f"{self.root_path}llms_out/fewshot_examples/{filename}.html")
 
             df.to_csv(f"{self.root_path}llms_out/fewshot_examples/{filename}.csv")
-            examples_per_category[category] =  [
+            examples_per_category[original_category] =  [
                 {"effective_argument": x} for x in df["text"].values.tolist()
             ]
             
@@ -224,12 +228,8 @@ class Generator:
                     suffix=self.llm_model.get_prompt_template(instructions),
                     input_variables=["text"],
                 )
-            else:  # 0 shot
-                print(f"-- 0 shot Prompt: \n{instructions} --")
+            else:  # 0 shot         
                 prompt = self.llm_model.get_prompt_template(instructions)
-                print(f"prompt: {prompt}")
-                
-
 
             # remove
             if self._temp_flag:

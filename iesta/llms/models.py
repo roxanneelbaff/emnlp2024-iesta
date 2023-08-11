@@ -56,7 +56,7 @@ class ChatGpt(IestaLLM):
         prompt = ChatPromptTemplate.from_messages(
              [system_message_prompt, human_message_prompt]
             )
-        print(f"*** prompt WITHIN {prompt}")
+
         return prompt
 
     def load_langchain_llm(self, model_name_path: str = None):

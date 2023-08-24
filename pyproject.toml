@@ -24,14 +24,15 @@ dependencies = [
     "ipywidgets==8.0.4",
     "imbalanced-learn>=0.10.1",
     "datasets>=2.8.0",
-    "transformers>=4.25.1",
+    "transformers @ git+https://github.com/huggingface/transformers",
     "huggingface_hub>=0.11.1",
     "comet_ml>=3.32.6",
     "codecarbon>=2.1.4",
     "accelerate",
     "langdetect",
     "python-dotenv",
-    "ydata-profiling",""
+    "ydata-profiling",
+    "openai"
 ]
 
 

@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--ideology", type=str, default="all")# liberal or conservative
-    parser.add_argument("-k", "--examples_k", type=int, default=0) #  shots
+    parser.add_argument("-k", "--examples_k", type=int, default=0) #  shots, 1 means run 0 and 1 shot
     parser.add_argument("-m", "--models", type=str, default="all") ## llamav2, chatgpt, + support models with activations
     parser.add_argument("-l", "--limit", type=int, default=-1) # number of text samples for ineffective arguments
     args = parser.parse_args()
@@ -44,4 +44,4 @@ if __name__ == "__main__":
             args.limit
         )
 
-# nohup python3 scripts/generate.py -i all -k 1 -m chatgpt -l 2  > logs/all_fewshots.log 2>&1 &
+#  nohup python3 scripts/generate_w_llms.py  -k 1 -m chatgpt  > logs/chatgpt1shot.log 2>&1 &

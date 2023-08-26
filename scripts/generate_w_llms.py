@@ -6,7 +6,9 @@ from iesta.llms.models import LlamaV2, ChatGpt
 def run(ideology, models, examples_k, limit):
     models = ["llamav2", "chatgpt"] if models == "all" else [models]
     for model in models:
-        iestal_model = LlamaV2() if model == "llamav2" else ChatGpt()
+        hf= "meta-llama/Llama-2-13b-chat-hf"
+        server_llamav2 = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0003/emex/llama2/llama/llama2_13b_chat_hf/"
+        iestal_model = LlamaV2(server_llamav2) if model == "llamav2" else ChatGpt()
 
         for k in range(0, examples_k+1):
             print(f" #### For {k}shot prompts for model {model}, for {ideology} ###")
@@ -44,4 +46,4 @@ if __name__ == "__main__":
             args.limit
         )
 
-#  nohup python3 scripts/generate_w_llms.py  -k 1 -m chatgpt  > logs/chatgpt1shot.log 2>&1 &
+#  nohup python3 scripts/generate_w_llms.py  -k 0 -m llamav2  > logs/llamav20shot.log 2>&1 &

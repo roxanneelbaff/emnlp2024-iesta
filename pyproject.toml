@@ -32,7 +32,8 @@ dependencies = [
     "langdetect",
     "python-dotenv",
     "ydata-profiling",
-    "openai"
+    "openai",
+    "langchain"
 ]
 
 

@@ -63,7 +63,7 @@ class Generator:
         if self.root_path is None: self.root_path = "../data/"
         self.out_file = f"{self.root_path}{self.out_file}"
 
-        found = load_dotenv(f"{self.root_path}/.env")
+        found = load_dotenv(f"{self.root_path}../.env")
         print(f"dotenv was found: {found}")
 
         print("Initializing all prompt templates in variable prompt_dict..")

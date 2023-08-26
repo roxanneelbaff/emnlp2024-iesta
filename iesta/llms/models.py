@@ -26,8 +26,8 @@ from langchain.prompts.prompt import PromptTemplate
 class IestaLLM():
     name = ""
 
-    def __init__(self):
-        self.llm = self.load_langchain_llm()
+    def __init__(self, model_name_path: str = None):
+        self.llm = self.load_langchain_llm(model_name_path=model_name_path)
 
     @abstractmethod
     def load_langchain_llm(self, model_name_path: str = None):

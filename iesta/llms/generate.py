@@ -168,7 +168,8 @@ class Generator:
             # No movies in training, get from similar category, art
             if self.ideology == "liberal":
                 category = "Arts" if original_category in ["Movies", "Music"] else  original_category
-            #else:
+            else:
+                category = original_category
 
             count = count_row['counts']
             _dataset = dataset.filter(
@@ -188,7 +189,7 @@ class Generator:
                 count = count +1
                 if count == 10:
                     break
-                
+
             print(f"category {original_category} done with {len(category_examples)}/{count}")
 
             df = category_examples.to_pandas().copy()

@@ -225,7 +225,7 @@ class Generator:
                 prompt = FewShotPromptTemplate(
                     examples=local_examples,
                     example_prompt=example_prompt,
-                    suffix=self.llm_model.get_prompt_template(instructions),
+                    suffix=self.llm_model.get_template(instructions),
                     input_variables=["text"],
                 )
             else:  # 0 shot         

@@ -3,13 +3,14 @@ import argparse
 from dotenv import load_dotenv, find_dotenv
 from iesta.llms.models import LlamaV2, ChatGpt
 
+
 def run(ideology, models, examples_k, limit):
     models = ["llamav2", "chatgpt"] if models == "all" else [models]
-    for model in models:
-        iestal_model = LlamaV2() if model == "llamav2" else ChatGpt()
 
-        for k in range(0, examples_k+1):
-            print(f" #### For {k}shot prompts for model {model}, for {ideology} ###")
+    for k in range(0, examples_k+1):
+        for model in models:
+            iestal_model = LlamaV2(model_name_path="meta-llama/Llama-2-7b-chat-hf") if model == "llamav2" else ChatGpt()
+            print(f" #### {k}shot prompts - {model} - {ideology} ###")
 
             generator = Generator(
                 ideology=ideology,

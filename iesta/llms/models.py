@@ -34,8 +34,14 @@ class IestaLLM():
         pass
 
     @abstractmethod
-    def get_prompt_template(self, instruction: str, 
-                            new_system_prompt: str ):
+    def get_prompt_template(self, instruction: str,
+                            new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT):
+        print("should never be called")
+        pass
+
+    @abstractmethod
+    def get_template(self, instruction: str,
+                     new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT):
         print("should never be called")
         pass
 
@@ -43,9 +49,16 @@ class IestaLLM():
 class ChatGpt(IestaLLM):
     name = "ChatGpt"
 
+    def get_template(self, instruction: str,
+                     new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
+        human_message_prompt = HumanMessagePromptTemplate.from_template(
+            instruction
+        )
+        return human_message_prompt
+
     def get_prompt_template(self, instruction: str,
                             new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
-        
+
         system_message_prompt = SystemMessagePromptTemplate.from_template(
             new_system_prompt
         )
@@ -79,12 +92,14 @@ class LlamaV2(IestaLLM):
     B_SYS: ClassVar = "<<SYS>>\n"
     E_SYS: ClassVar = "\n<</SYS>>\n\n"
 
-    def get_prompt_template(self, instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) :
+    def get_template(self,  instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
         SYSTEM_PROMPT = LlamaV2.B_SYS + new_system_prompt + LlamaV2.E_SYS
         prompt_str = LlamaV2.B_INST + SYSTEM_PROMPT + instruction + LlamaV2.E_INST
-
+        return prompt_str
+    
+    def get_prompt_template(self, instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) :
         prompt_template = PromptTemplate(
-            template=prompt_str,
+            template=self.get_template(),
             input_variables=["text"],
             )
 

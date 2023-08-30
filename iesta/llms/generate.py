@@ -169,7 +169,9 @@ class Generator:
             if self.ideology == "liberal":
                 category = "Arts" if original_category in ["Movies", "Music"] else  original_category
             else:
-                category = original_category
+                category = "Entertainment" if original_category in ["Fashion",
+                                                                    "Cars",
+                                                                    "Places-Travel"] else  original_category
 
             count = count_row['counts']
             _dataset = dataset.filter(
@@ -179,16 +181,13 @@ class Generator:
             category_examples = _dataset
             if len(category_examples) > count:
                 category_examples = category_examples.select(range(count))
-            count = 0
+
             while len(category_examples) < count:
                 reselect_num = min(len(_dataset), (count-len(category_examples)))
                 print("reselecting")
                 category_examples = datasets.concatenate_datasets([category_examples,
                                                                    category_examples.select(range(reselect_num))]
                                                                   )
-                count = count +1
-                if count == 10:
-                    break
 
             print(f"category {original_category} done with {len(category_examples)}/{count}")
 

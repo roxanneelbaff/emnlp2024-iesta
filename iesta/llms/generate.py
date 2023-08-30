@@ -203,7 +203,6 @@ class Generator:
     # ---------- #
     def generate_for_prompts(self, ineffective_argument: str, category: str= None):
         result_dict = {}
-        print("generate_for_prompts called")
         # Preparing PROMPTS
 
         assert (self.n_shots > 0 and category is not None) or self.n_shots == 0

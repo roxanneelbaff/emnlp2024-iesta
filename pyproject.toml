@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "iesta"
-version = "1.4.34"
+version = "1.4.35"
 description='code for the paper IESTA'
 readme = "README.md"
 authors = [{ name = "Roxanne El Baff", email = "roxanne.elbaff@gmail.com" }]

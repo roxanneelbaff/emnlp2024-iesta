@@ -99,7 +99,7 @@ class LlamaV2(IestaLLM):
     
     def get_prompt_template(self, instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) :
         prompt_template = PromptTemplate(
-            template=self.get_template(),
+            template=self.get_template(instruction, new_system_prompt),
             input_variables=["text"],
             )
 

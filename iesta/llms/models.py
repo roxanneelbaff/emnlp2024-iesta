@@ -55,7 +55,7 @@ class ChatGpt(IestaLLM):
 
     def get_template(self, instruction: str,
                      new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
-        system = f"System: {new_system_prompt}\n"
+        system = f"System: {new_system_prompt}\n\n"
         user = "User: " + instruction
         prompt = system + user + "\n"
         return prompt
@@ -87,7 +87,8 @@ class ChatGpt(IestaLLM):
             print(f"loading model {self.model_name_path}")
         return ChatOpenAI(
             model_name=self.model_name_path,
-            temperature=0
+            temperature=0,
+            max_tokens=2048
             )
 
 

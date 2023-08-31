@@ -45,16 +45,20 @@ class IestaLLM():
         print("should never be called")
         pass
 
+    @abstractmethod
+    def reload(self, verbose=False):
+        pass
+
 
 class ChatGpt(IestaLLM):
     name = "ChatGpt"
 
     def get_template(self, instruction: str,
                      new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
-        human_message_prompt = HumanMessagePromptTemplate.from_template(
-            instruction
-        )
-        return human_message_prompt
+        system = f"System: {new_system_prompt}\n"
+        user = "User: " + instruction
+        prompt = system + user + "\n"
+        return prompt
 
     def get_prompt_template(self, instruction: str,
                             new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
@@ -75,12 +79,16 @@ class ChatGpt(IestaLLM):
     def load_langchain_llm(self, model_name_path: str = None):
         self.model_name_path = "gpt-3.5-turbo" if model_name_path is None else model_name_path
         print(f"loading model {self.model_name_path}")
-        
-        llm = ChatOpenAI(
+
+        return self.reload()
+
+    def reload(self, verbose=False):
+        if verbose:
+            print(f"loading model {self.model_name_path}")
+        return ChatOpenAI(
             model_name=self.model_name_path,
             temperature=0
             )
-        return llm
 
 
 class LlamaV2(IestaLLM):
@@ -110,6 +118,13 @@ class LlamaV2(IestaLLM):
         self.model_name_path = "meta-llama/Llama-2-7b-chat-hf" if model_name_path is None else model_name_path
         print(f"loading model {self.model_name_path}")
 
+        llm = self.reload()
+
+        return llm
+
+    def reload(self, verbose=False):
+        if verbose:
+            print(f"loading model {self.model_name_path}")
         tokenizer = AutoTokenizer.from_pretrained(self.model_name_path,)
 
         model = AutoModelForCausalLM.from_pretrained(self.model_name_path,
@@ -132,9 +147,7 @@ class LlamaV2(IestaLLM):
                                   model_kwargs={
                                       'temperature': 0
                                       })
-
         return llm
-
 
     # For future reference - NOT USED IN IESTA
     DEFAULT_SYSTEM_PROMPT = """\

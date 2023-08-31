@@ -242,7 +242,7 @@ class Generator:
                 print(prompt.format(text=ineffective_argument))
                 self._temp_flag = False
 
-            llm_chain = LLMChain(llm=self.llm_model.llm, prompt=prompt)
+            llm_chain = LLMChain(llm=self.llm_model.reload(verbose=self._temp_flag), prompt=prompt)
             result_dict[k] = llm_chain.run(
                 text=ineffective_argument
             )

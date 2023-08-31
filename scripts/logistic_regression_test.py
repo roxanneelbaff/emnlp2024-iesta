@@ -26,7 +26,7 @@ else:
 
 ### LOADING ACTIVATIONS
 
-FILES = glob.glob("/dss/dsstbyfs02/pn49ci/pn49ci-dss-0003/emex/steering_vectors/eacl_iesta/*.pkl")
+FILES = glob.glob("/dss/dsstbyfs02/pn49ci/pn49ci-dss-0003/emex/steering_vectors/eacl_iesta/7b-chat/*.pkl")
 
 activations = {"conservative_effective" : [], "conservative_ineffective" : [],
                 "liberal_effective" : [], "liberal_ineffective" : []}
@@ -36,7 +36,7 @@ for file in FILES:
         if key in file:
             with open(file, 'rb') as f:
                 actis = pickle.load(f)
-                activations[key] = activations[key] + actis[-2]
+                activations[key] = activations[key] + actis
 
 
 
@@ -179,7 +179,7 @@ def multi_layer_classification(num_layers = 3, specific_layers = None, keys = ['
     if specific_layers is not None:
         layer_indices_list = [specific_layers] 
     else:
-        for i in range(0,len(activations[keys[0]][0])):
+        for i in range(0,len(activations[keys[0]][0][2])):
             layer_indices_list.append(np.arange(i,i+num_layers))
 
     for layer_indices in layer_indices_list:
@@ -205,36 +205,40 @@ def multi_layer_classification(num_layers = 3, specific_layers = None, keys = ['
         Y_train = []
         X_train = []
         for entry in class_one_train:
+            sample = entry[2]
             Y_train.append(0)
             entries = []
             for layer_index in layer_indices:
-                entries.append(entry[layer_index])
+                entries.append(sample[layer_index])
                 # entries.append(entry[0][layer_index])
             X_train.append(np.concatenate(entries))
 
         for entry in class_two_train:
+            sample = entry[2]
             Y_train.append(1)
             entries = []
             for layer_index in layer_indices:
-                entries.append(entry[layer_index])
+                entries.append(sample[layer_index])
                 # entries.append(entry[0][layer_index])
             X_train.append(np.concatenate(entries))
 
         Y_test = []
         X_test = []
         for entry in class_one_test:
+            sample = entry[2]
             Y_test.append(1)
             entries = []
             for layer_index in layer_indices:
-                entries.append(entry[layer_index])
+                entries.append(sample[layer_index])
                 # entries.append(entry[0][layer_index])
             X_test.append(np.concatenate(entries))
 
         for entry in class_two_test:
+            sample = entry[2]
             Y_test.append(1)
             entries = []
             for layer_index in layer_indices:
-                entries.append(entry[layer_index])
+                entries.append(sample[layer_index])
                 # entries.append(entry[0][layer_index])
             X_test.append(np.concatenate(entries))
 

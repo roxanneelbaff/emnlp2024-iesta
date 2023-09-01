@@ -166,7 +166,12 @@ class Generator:
         for original_category, count_row in category_counts.iterrows():
 
             # No movies in training, get from similar category, art
-            category = "Arts" if original_category in ["Movies", "Music"] else  original_category
+            if self.ideology == "liberal":
+                category = "Arts" if original_category in ["Movies", "Music"] else  original_category
+            else:
+                category = "Entertainment" if original_category in ["Fashion",
+                                                                    "Cars",
+                                                                    "Places-Travel"] else  original_category
 
             count = count_row['counts']
             _dataset = dataset.filter(
@@ -176,13 +181,14 @@ class Generator:
             category_examples = _dataset
             if len(category_examples) > count:
                 category_examples = category_examples.select(range(count))
-            
+
             while len(category_examples) < count:
                 reselect_num = min(len(_dataset), (count-len(category_examples)))
                 print("reselecting")
                 category_examples = datasets.concatenate_datasets([category_examples,
                                                                    category_examples.select(range(reselect_num))]
                                                                   )
+
             print(f"category {original_category} done with {len(category_examples)}/{count}")
 
             df = category_examples.to_pandas().copy()
@@ -203,7 +209,6 @@ class Generator:
     # ---------- #
     def generate_for_prompts(self, ineffective_argument: str, category: str= None):
         result_dict = {}
-        print("generate_for_prompts called")
         # Preparing PROMPTS
 
         assert (self.n_shots > 0 and category is not None) or self.n_shots == 0
@@ -225,7 +230,7 @@ class Generator:
                 prompt = FewShotPromptTemplate(
                     examples=local_examples,
                     example_prompt=example_prompt,
-                    suffix=self.llm_model.get_prompt_template(instructions),
+                    suffix=self.llm_model.get_template(instructions),
                     input_variables=["text"],
                 )
             else:  # 0 shot         

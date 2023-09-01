@@ -34,18 +34,35 @@ class IestaLLM():
         pass
 
     @abstractmethod
-    def get_prompt_template(self, instruction: str, 
-                            new_system_prompt: str ):
+    def get_prompt_template(self, instruction: str,
+                            new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT):
         print("should never be called")
+        pass
+
+    @abstractmethod
+    def get_template(self, instruction: str,
+                     new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT):
+        print("should never be called")
+        pass
+
+    @abstractmethod
+    def reload(self, verbose=False):
         pass
 
 
 class ChatGpt(IestaLLM):
     name = "ChatGpt"
 
+    def get_template(self, instruction: str,
+                     new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
+        system = f"System: {new_system_prompt}\n\n"
+        user = "User: " + instruction
+        prompt = system + user + "\n"
+        return prompt
+
     def get_prompt_template(self, instruction: str,
                             new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
-        
+
         system_message_prompt = SystemMessagePromptTemplate.from_template(
             new_system_prompt
         )
@@ -62,12 +79,17 @@ class ChatGpt(IestaLLM):
     def load_langchain_llm(self, model_name_path: str = None):
         self.model_name_path = "gpt-3.5-turbo" if model_name_path is None else model_name_path
         print(f"loading model {self.model_name_path}")
-        
-        llm = ChatOpenAI(
+
+        return self.reload()
+
+    def reload(self, verbose=False):
+        if verbose:
+            print(f"loading model {self.model_name_path}")
+        return ChatOpenAI(
             model_name=self.model_name_path,
-            temperature=0
+            temperature=0,
+            max_tokens=2048
             )
-        return llm
 
 
 class LlamaV2(IestaLLM):
@@ -79,12 +101,14 @@ class LlamaV2(IestaLLM):
     B_SYS: ClassVar = "<<SYS>>\n"
     E_SYS: ClassVar = "\n<</SYS>>\n\n"
 
-    def get_prompt_template(self, instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) :
+    def get_template(self,  instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ):
         SYSTEM_PROMPT = LlamaV2.B_SYS + new_system_prompt + LlamaV2.E_SYS
         prompt_str = LlamaV2.B_INST + SYSTEM_PROMPT + instruction + LlamaV2.E_INST
-
+        return prompt_str
+    
+    def get_prompt_template(self, instruction, new_system_prompt: str = prompts.IESTA_SYSTEM_PROMPT ) :
         prompt_template = PromptTemplate(
-            template=prompt_str,
+            template=self.get_template(instruction, new_system_prompt),
             input_variables=["text"],
             )
 
@@ -95,6 +119,13 @@ class LlamaV2(IestaLLM):
         self.model_name_path = "meta-llama/Llama-2-7b-chat-hf" if model_name_path is None else model_name_path
         print(f"loading model {self.model_name_path}")
 
+        llm = self.reload()
+
+        return llm
+
+    def reload(self, verbose=False):
+        if verbose:
+            print(f"loading model {self.model_name_path}")
         tokenizer = AutoTokenizer.from_pretrained(self.model_name_path,)
 
         model = AutoModelForCausalLM.from_pretrained(self.model_name_path,
@@ -117,9 +148,7 @@ class LlamaV2(IestaLLM):
                                   model_kwargs={
                                       'temperature': 0
                                       })
-
         return llm
-
 
     # For future reference - NOT USED IN IESTA
     DEFAULT_SYSTEM_PROMPT = """\

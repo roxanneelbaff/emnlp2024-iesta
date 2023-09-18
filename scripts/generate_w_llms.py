@@ -7,10 +7,6 @@ from iesta.llms.models import LlamaV2, ChatGpt
 def run(ideology, models, examples_k, limit):
     models = ["llamav2", "chatgpt"] if models == "all" else [models]
     for k in range(0, examples_k+1):
-        
-        
-
-    
         for model in models:
             iestal_model = LlamaV2(model_name_path="meta-llama/Llama-2-7b-chat-hf") if model == "llamav2" else ChatGpt()
             #hf= "meta-llama/Llama-2-13b-chat-hf"

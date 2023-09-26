@@ -500,9 +500,9 @@ class IESTAData:
         # Works only for EACH
         path = self._get_out_files_path()
         df_file = os.path.join(
-            path, f"{self.ideology.lower()}_training.parquet"
+            path,
+            f"{self.ideology.lower()}_training.parquet"
             #             r"C:\Users\elba_ro\Documents\projects\github\conf22-style-transfer\{self.ideology.lower()}_training.parquet"
-
         )
 
         if os.path.isfile(df_file) and not reload:
@@ -564,10 +564,10 @@ def load_training_features_df(
     # LIWC
     liwc_fpath = f"{path}/liwc22_{ideology.lower()}_training.csv"
     liwc_df = pd.read_csv(liwc_fpath, index_col="idx")
-    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+    numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
     liwc_df = liwc_df.select_dtypes(include=numerics)
-    liwc_df.drop(columns=['Segment', 'round'], inplace=True)
-    liwc_df.columns = 'liwc_' + liwc_df.columns
+    liwc_df.drop(columns=["Segment", "round"], inplace=True)
+    liwc_df.columns = "liwc_" + liwc_df.columns
 
     empath_mpqa_df = get_features_df(style_features_path, 5000, training_data)
     transformers_based_features_df = get_features_df(
@@ -582,11 +582,16 @@ def load_training_features_df(
         right_index=True,
         left_index=True,
     )
-    feature_df = feature_df.merge(liwc_df,
-                                  right_index=True,
-                                  left_index=True,
-                                  )
+    feature_df = feature_df.merge(
+        liwc_df,
+        right_index=True,
+        left_index=True,
+    )
     print("excluding very long texts")
-    excluded_idx = prop.LONG_LIBERAL_TXT_INDX if ideology == "Liberal" else prop.LONG_CONSERVATIVE_TXT_INDX
+    excluded_idx = (
+        prop.LONG_LIBERAL_TXT_INDX
+        if ideology == "Liberal"
+        else prop.LONG_CONSERVATIVE_TXT_INDX
+    )
     feature_df = feature_df.loc[~feature_df.index.isin(excluded_idx)]
     return training_data, feature_df

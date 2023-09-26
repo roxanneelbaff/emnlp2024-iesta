@@ -5,7 +5,7 @@ import iesta.properties as prop
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import MinMaxScaler
 from nlpaf.ml import preprocess
-import os 
+import os
 
 ROOT_PATH = os.path.join(prop.ROOT_PATH, "significant_test")
 
@@ -16,15 +16,12 @@ ideologies = [
 
 # HELPERS
 
+
 def _get_full_filename(
-    ideology: str,
-    independent_var: str,
-    normalize: str = None
+    ideology: str, independent_var: str, normalize: str = None
 ):
     normalized_str = f"_{normalize.lower()}" if normalize is not None else ""
-    filename = "{}{}_{}".format(
-        ideology, normalized_str, independent_var
-    )
+    filename = "{}{}_{}".format(ideology, normalized_str, independent_var)
     file_path: str = os.path.join(ROOT_PATH, filename)
 
     return file_path, filename
@@ -38,8 +35,13 @@ def calc_sign_effects(
     recalculate: bool = False,
 ) -> pd.DataFrame:
     filepath, filename = _get_full_filename(
-        ideology,  independent_var, normalize)
-    result_df, detailed_df = nlpaf.inferential_stats._siginificance_calculated(filepath) if not recalculate else (None, None)
+        ideology, independent_var, normalize
+    )
+    result_df, detailed_df = (
+        nlpaf.inferential_stats._siginificance_calculated(filepath)
+        if not recalculate
+        else (None, None)
+    )
     if result_df is not None and detailed_df is not None:
         return result_df, detailed_df
 
@@ -57,7 +59,9 @@ def calc_sign_effects(
             print(f"Before clipping {len(df)}")
             df, _ = preprocess.clip_outliers(df)
             print(f"After clipping {len(df)}")
-        scaler = RobustScaler() if normalize == "RobustScaler" else MinMaxScaler()
+        scaler = (
+            RobustScaler() if normalize == "RobustScaler" else MinMaxScaler()
+        )
         df[num_cols] = scaler.fit_transform(df[num_cols])
 
     assert len(df[independent_var].unique()) > 1
@@ -91,14 +95,9 @@ def run_all_significance_test(feature_dfs):
             features_df = feature_dfs[ideology]
 
             significance[
-                _get_full_filename(ideology,
-                                   independent_var,
-                                   normalize)[1]
+                _get_full_filename(ideology, independent_var, normalize)[1]
             ] = calc_sign_effects(
-                features_df,
-                ideology,
-                independent_var,
-                normalize=normalize
+                features_df, ideology, independent_var, normalize=normalize
             )
 
     return significance

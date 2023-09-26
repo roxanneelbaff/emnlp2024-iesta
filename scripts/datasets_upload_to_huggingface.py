@@ -46,3 +46,6 @@ if __name__ == "__main__":
 
 
 # nohup python3 scripts/upload_datasets_to_huggingface.py -i all -f -s all  > logs/upload_to_huggingface.log  2>&1 &
+
+##from iesta.data.finetuning_data import FineTuningData as FTD
+# liberal = FTD.get_sv_data("liberal", skip_system_prompt=True, save=True)

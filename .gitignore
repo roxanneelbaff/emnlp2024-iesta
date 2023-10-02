@@ -19,3 +19,7 @@ build
 logs
 */epoch*/*
 dist/*
+
+temp.py
+
+*debug.ipynb

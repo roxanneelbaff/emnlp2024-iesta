@@ -7,12 +7,12 @@ import transformers
 from iesta.llms.steering.steering_layer import SteeringLayer
 import dataclasses
 from types import FunctionType
-
+from dataclasses import field
 
 @dataclasses.dataclass
 class SteeredModel:
     model_name_path: str = config.MODEL_NAME_PATH
-    activation_file_paths: str = config.ACTIVATION_FILE_PATHS
+    activation_file_paths: list[str] = field(default_factory=config.ACTIVATION_FILE_PATHS) 
     concat_func: FunctionType = np.mean
 
     def __post_init__(self):
@@ -25,9 +25,7 @@ class SteeredModel:
         self.activation_layer_per_syle_dict = self.load_activations()
 
         print("Concatinating each style hidden layers...")
-        self.concatenated_style_dict = self.calculate_means(
-            self.activation_layer_per_syle_dict, self.concat_func
-        )
+        self.concatenated_style_dict = self.concatenate_style(self.concat_func)
 
         print("Calculating steering vectors...")
         self.steering_vectors_per_style_dict = self.get_steering_vectors()
@@ -47,15 +45,12 @@ class SteeredModel:
                 for f in self.activation_file_paths
                 if f.split("/")[-1].startswith(key)
             ]
+            print(f"style files: {style_files}")
             for style_file in style_files:
                 with open(style_file, "rb") as f:
                     activation_pickle = pickle.load(f)
                     for acti in activation_pickle:
-                        activation_layer_per_syle_dict[key].append(
-                            acti[2][
-                                config.INSERTION_LAYERS
-                            ]  # only works with numpy
-                        )  # 0 is the ID and 1 is the sample as a string 2 holds all the layers
+                        activation_layer_per_syle_dict[key].append(acti[2][18:21])  # 0 is the ID and 1 is the sample as a string 2 holds all the layers
         return activation_layer_per_syle_dict
 
     def concatenate_style(self, func=np.mean) -> dict:
@@ -85,7 +80,7 @@ class SteeredModel:
                 - np_arr_per_style_dict[config.get_opposite_style(k)],
                 len(config.INSERTION_LAYERS),
             )
-            for k in config.get_style_experiment_key()
+            for k in config.get_style_experiment_keys()
         }
         return steering_vectors
 
@@ -127,3 +122,4 @@ class SteeredModel:
                 .replace(";", "-")
             )
             print(output)
+            return output

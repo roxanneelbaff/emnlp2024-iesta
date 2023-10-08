@@ -24,11 +24,11 @@ from langchain.prompts.prompt import PromptTemplate
 class IestaLLM:
     name = ""
 
-    def __init__(self, model_name_path: str = None):
-        self.llm = self.load_langchain_llm(model_name_path=model_name_path)
+    def __init__(self, model_name_path: str = None, preset_model=None):
+        self.llm = self.load_langchain_llm(model_name_path=model_name_path, preset_model=preset_model)
 
     @abstractmethod
-    def load_langchain_llm(self, model_name_path: str = None):
+    def load_langchain_llm(self, model_name_path: str = None, preset_model=None):
         pass
 
     @abstractmethod
@@ -85,7 +85,7 @@ class ChatGpt(IestaLLM):
 
         return prompt
 
-    def load_langchain_llm(self, model_name_path: str = None):
+    def load_langchain_llm(self, model_name_path: str = None, preset_model=None):
         self.model_name_path = (
             "gpt-3.5-turbo" if model_name_path is None else model_name_path
         )
@@ -129,7 +129,7 @@ class LlamaV2(IestaLLM):
         return prompt_template
 
     def load_langchain_llm(
-        self, model_name_path: str = None
+        self, model_name_path: str = None, preset_model=None
     ) -> HuggingFacePipeline:
         self.model_name_path = (
             "meta-llama/Llama-2-7b-chat-hf"
@@ -138,13 +138,13 @@ class LlamaV2(IestaLLM):
         )
         print(f"loading model {self.model_name_path}")
 
-        llm = self.reload()
+        llm = self.reload(preset_model=preset_model, verbose=True )
 
         return llm
 
-    def reload(self, verbose=False):
+    def reload(self, preset_model=None, verbose=False):
         if verbose:
-            print(f"loading model {self.model_name_path}")
+            print(f"loading model {self.model_name_path} - preset model is set: {preset_model is not None}")
         tokenizer = AutoTokenizer.from_pretrained(
             self.model_name_path,
         )
@@ -153,7 +153,8 @@ class LlamaV2(IestaLLM):
             self.model_name_path,
             device_map="auto",
             torch_dtype=torch.float16,
-        )
+        ) if preset_model is None else preset_model
+
         pipe = pipeline(
             "text-generation",
             model=model,

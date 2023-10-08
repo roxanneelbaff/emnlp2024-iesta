@@ -52,6 +52,7 @@ class Generator:
     data_save: bool = True
     data_limit: int = 500
     out_file: str = "llms_out/new/"
+    out_ext: str = "" # add steered
     seed: int = 2062021
     _temp_flag: bool = True
 
@@ -287,7 +288,7 @@ class Generator:
         return result_dict
 
     def generate_all(self, limit: int = -1):
-        out_file = f"{self.out_file}{self.ideology}_{self.llm_model.name.lower()}_{self.n_shots}shot.jsonl"
+        out_file = f"{self.out_file}{self.ideology}_{self.llm_model.name.lower()}_{self.n_shots}shot{self.out_ext}.jsonl"
 
         existing_indices = []
         if exists(out_file):

@@ -1,12 +1,22 @@
 from iesta.data.finetuning_data import FineTuningData as FTD
-# 
+
+#
+
 
 def main():
     try:
-        liberal = FTD.get_sv_data("liberal", skip_system_prompt=True, save=True)
-        liberal = FTD.get_sv_data("liberal", skip_system_prompt=False, save=True)
-        conservative = FTD.get_sv_data("conservative", skip_system_prompt=True, save=True)
-        conservative = FTD.get_sv_data("conservative", skip_system_prompt=False, save=True)
+        liberal = FTD.get_sv_data(
+            "liberal", skip_system_prompt=True, save=True
+        )
+        liberal = FTD.get_sv_data(
+            "liberal", skip_system_prompt=False, save=True
+        )
+        conservative = FTD.get_sv_data(
+            "conservative", skip_system_prompt=True, save=True
+        )
+        conservative = FTD.get_sv_data(
+            "conservative", skip_system_prompt=False, save=True
+        )
     finally:
         pass
 

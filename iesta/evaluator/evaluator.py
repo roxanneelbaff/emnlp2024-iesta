@@ -11,7 +11,6 @@ import pandas as pd
 
 
 from datasets import load_dataset, Dataset
-import pandas as pd
 from tqdm import tqdm
 from langdetect import detect
 from pathlib import Path
@@ -42,7 +41,7 @@ class Evaluator:
             f"{self.root_path}/{self.generated_args_path}/{self.key}.jsonl"
         )
 
-        print("postprocessing the generated arguments...")
+        print(f"postprocessing the generated arguments {filename}...")
         self.data = process_llm_generated_args(self.filename)
 
         print("fetching original ineffective arguments...")

@@ -1,19 +1,19 @@
 from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
-import re
 from glob import glob
 
-
-
+import os
 ## Helpers
 
+
 def _fetch_all_experiments(
-    root="../", path_pattern: str = f"data/llms_out/new/*.jsonl"
+    root="../", path_pattern: str = "data/llms_out/new"
 ):
-    path_pattern = f"{root}{path_pattern}"
+    path_pattern = os.path.join(root, path_pattern, "*.jsonl")
+    print(path_pattern)
     return [
-        x.split("\\")[-1].replace(".jsonl", "") for x in glob(path_pattern)
+        os.path.basename(x).replace(".jsonl", "") for x in glob(path_pattern)
     ]
 
 
@@ -36,16 +36,25 @@ def get_between_chars(str_, char_: str = '"'):
         indices = find_all(str_, char_)
 
         if len(indices) % 2 != 0:
-            str_ = str_[indices[0] + len(char_) :]
+            str_ = str_[indices[0] + len(char_):]
 
         else:
-            str_ = str_[(indices[0] + len(char_)) : indices[-1]]
+            str_ = str_[(indices[0] + len(char_)): indices[-1]]
     except Exception:
         return None
     return str_
 
+def _get_final_indices(root, ideology):
+    indices_path = f"{root}data/out/{ideology}_idx.csv"
 
-## Main Function
+    preset_indices = []
+    print(f"{indices_path}")
+    assert Path(indices_path).is_file()
+    print("original INDICESS found")
+    preset_indices = pd.read_csv(indices_path)["idx"].values.tolist()[:500]
+    return preset_indices
+
+# Main Function
 def process_llm_generated_args(path, root="../", force_reclean=False):
     text_keys = [
         "base",
@@ -57,18 +66,23 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
         "ideology",
     ]
 
-    all_experiments = _fetch_all_experiments()
+    all_experiments = _fetch_all_experiments(root=root)
+    experiment = path.split("/")[-1].replace(".jsonl", "")
+    ideology = experiment.split("_")[0]
+    indices = _get_final_indices(root, ideology)
+    
     df = pd.read_json(path_or_buf=path, lines=True)
     df = df.drop_duplicates(subset=["idx"], keep="last")
+    df = df[df['idx'].isin(indices)]
     # df = df.drop("original_text", axis=1)
 
-    experiment = path.split("\\")[-1].replace(".jsonl", "")
     out = f"{root}data/llms_out/new/processed/{experiment}_processed.csv"
+    print(out)
     if Path(out).is_file() and not force_reclean:
         return pd.read_csv(out)
 
     print(experiment)
-    #model_type = experiment.split("_")[1]
+    # model_type = experiment.split("_")[1]
     ideology = experiment.split("_")[0]
 
     exceptions_dict = {k: [] for k in all_experiments}
@@ -138,7 +152,6 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
         64942: ["content_style_ideology"],
     }
 
-    arr = []
     debug_idx = []
     correct = 7 * len(df)
     processing_logs = []
@@ -165,7 +178,7 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
         for col in text_keys:
             exception = ""
             refuse_to_respond = False
-            ## TO DISMISS
+            # TO DISMISS
             if (
                 idx in dismiss_dict[experiment].keys()
                 and col in dismiss_dict[experiment][idx]
@@ -182,12 +195,10 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                             "I cannot provide a paraphrased argument"
                         )
                         > -1,
-                        "type": "DISMISSED",  ## The argument is between " " or backticks
+                        "type": "DISMISSED",  # The argument is between " " or backticks
                         "flag": False,
                         "success": success,
-                        "incontent_ideology_mentioned": cleaned_arg.lower().find(
-                            f"{ideology}"
-                        )
+                        "incontent_ideology_mentioned": False
                         > -1
                         and row["original_text"].lower().find(f"{ideology}")
                         < 0,
@@ -203,10 +214,10 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                 )
                 continue
             success = False
-            flag = False
+            # flag = False
             delimiter_num = 0
 
-            ## Phrase delimiter
+            # Phrase delimiter
             format_type = "Not between delimiters and Not rephrased"
             phrase_delimiters_dic = {
                 k: row[col].lower().find(k) for k in phrase_delimiters
@@ -223,7 +234,7 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                 format_type = "between a phrase delimiter"
                 delimiter_num = len(latest_phrase_delim)
 
-            ## Double quotes
+            # Double quotes
             if not success:
                 delimiter_num = 2
                 sub = get_between_chars(row[col])
@@ -232,7 +243,7 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                 )
                 success = sub is not None
 
-            ## Sticks
+            # Sticks
             if not success:
                 # if model_type == "llamav2":
                 sub = get_between_chars(
@@ -276,9 +287,9 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                 i = row[col].find(cleaned_arg)
                 # success = True
                 flag_ = True
-                llm_out_msge = (
-                    f"{row[col][0:i]}...{row[col][len(cleaned_arg)+i: ]}"
-                )
+                #llm_out_msge = (
+                #    f"{row[col][0:i]}...{row[col][len(cleaned_arg)+i: ]}"
+                #)
                 # print(
                 #    f"######### {row['idx']} generated text for {col}"
                 #    # f"{sub} -\n ****kept:*** \n {row[col][i: len(sub)+1]}\n"
@@ -315,7 +326,7 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                         "I cannot provide a paraphrased argument"
                     )
                     > -1,
-                    "type": format_type,  ## The argument is between " " or backticks
+                    "type": format_type,  # The argument is between " " or backticks
                     "flag": flag_,
                     "success": success,
                     "incontent_ideology_mentioned": cleaned_arg.lower().find(

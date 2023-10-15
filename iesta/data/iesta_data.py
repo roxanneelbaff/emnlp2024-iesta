@@ -2,7 +2,6 @@ import dataclasses
 from typing import ClassVar, Dict
 
 from sklearn.model_selection import train_test_split
-import numpy
 from tqdm import tqdm
 import os
 
@@ -14,13 +13,10 @@ import pandas as pd
 from iesta.data import iesta_data
 import cleantext
 import iesta.properties as prop
-from tqdm import tqdm
 from sklearn.utils.random import sample_without_replacement
 import re
 
-import pandas as pd
-from ydata_profiling import ProfileReport
-from ydata_profiling import ProfileReport
+#from ydata_profiling import ProfileReport
 
 ### HELPERS
 
@@ -232,6 +228,8 @@ class IESTAData:
             print(f"Profiling data")
 
             df["text_low"] = df["cleaned_text"].str.lower()
+            """
+            
             if profile:
                 profile = ProfileReport(
                     df[["text_low"]], title="Profiling Report"
@@ -255,6 +253,7 @@ class IESTAData:
                     )
                 )
                 print(f"End of profiling")
+            """
 
             debates = df["debate_id"].unique()
 
@@ -358,6 +357,7 @@ class IESTAData:
 
         for g, _df in data_w_splits_df.groupby(["is_for_eval_classifier"]):
             print(f"\n{g}")
+            """
             if profile:
                 profile = ProfileReport(
                     _df, title=f"PR {self.ideology} is_for_eval_classifier {g}"
@@ -369,7 +369,7 @@ class IESTAData:
                         f"{self.ideology}_is-for-evaluator_{g}.html",
                     )
                 )
-
+            """
             print(pd.crosstab(_df["split"], _df["effect"]))
 
         split_effect_pivot_df = pd.crosstab(

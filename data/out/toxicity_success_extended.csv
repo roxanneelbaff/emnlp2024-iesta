@@ -1,0 +1,6 @@
+success,Not Toxic_liberal,Toxic_liberal,Not Toxic_conservative,Toxic_conservative
+llamav2_0shot,19.2,36.39,21.32,37.48
+llamav2_0shot_steered_meanl0.2,10.57,28.87,10.41,27.11
+llamav2_0shot_steered_meanl0.5,5.75,18.65,4.45,16.9
+llamav2_0shot_steered_medianl0.2,9.92,25.78,10.26,29.4
+llamav2_1shot,12.66,23.51,15.43,31.54

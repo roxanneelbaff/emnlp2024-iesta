@@ -1,7 +1,9 @@
 import dataclasses
+import re
 import textwrap
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import QuantileTransformer
 from transformers import pipeline
 
 from nltk.tokenize import word_tokenize
@@ -16,6 +18,10 @@ from langdetect import detect
 from pathlib import Path
 
 from datasets.combine import concatenate_datasets
+from iesta import utils
+from iesta.data.feature_extraction import IESTAFeatureExtractionPipeline
+from iesta.data.feature_score import get_top_features
+from iesta.data.huggingface_loader import IESTAHuggingFace
 
 from iesta.evaluator.generation_processor import process_llm_generated_args
 from scipy.stats import pointbiserialr
@@ -28,45 +34,57 @@ class Evaluator:
     shot_num: int
     steered: str = ""  # _steered_mean0.2
 
-    ## exceptional - LIWC features_path
+    # exceptional - LIWC features_path
     feature_liwc_path: str = None
-    root_path: str = "../data"
-    generated_args_path = "llms_out/new"
+    root_path: str = ""  # or ../
+    generated_args_path = "data/llms_out/new"
 
     def __post_init__(self):
         self.key = (
-            f"{self.ideoloy}_{self.model_type}_{self.shot_num}shot{steered}"
+            f"{self.ideology}_{self.model_type}_{self.shot_num}shot{self.steered}"
         )
         self.filename: str = (
-            f"{self.root_path}/{self.generated_args_path}/{self.key}.jsonl"
+            f"{self.root_path}{self.generated_args_path}/{self.key}.jsonl"
         )
 
-        print(f"postprocessing the generated arguments {filename}...")
-        self.data = process_llm_generated_args(self.filename)
+        print(f"postprocessing the generated arguments {self.filename}...")
+        self.data = process_llm_generated_args(self.filename,
+                                               root=self.root_path)
 
         print("fetching original ineffective arguments...")
         self.original_data_df = self.get_test_data()
-        print("Calculating the toxicity scores for Ineffective arguments...")
+        print(f"Calculating the toxicity scores for Ineffective arguments - existing cols {self.original_data_df.columns.tolist()}...")
+        print(f"{type(self.original_data_df['text'].values.tolist())}")
+        
         if "toxic" not in self.original_data_df.columns.tolist():
+            print("Toxicity from scratch")
             toxicity_scores = self.score_toxicity(
                 self.original_data_df["text"].values.tolist()
             )
             toxicity_scores_df = pd.DataFrame(toxicity_scores)
             self.original_data_df["toxic"] = toxicity_scores_df["toxic"]
+
+            out_path = f"{self.root_path}data/test_{self.ideology}_ineffective.csv"
+            self.original_data_df.to_csv(out_path, index=False)
+        else: 
+            print("Toxicity score already calculated")    
+        print("Toxicity score just calculated")
+
+        print("Merging original and generated data...")
         self.merged_df = pd.merge(
-            self.data,
-            self.original_data_df[self.ideology][
-                [
+            self.original_data_df[[
                     "category",
                     "round",
                     "debate_id",
                     "idx",
                     "toxic",
-                ]
-            ],
+                ]],
+            self.data,
+            
             how="inner",
             on="idx",
         )
+        print(f"MERGED DATA SHOULD BE 500 {len(self.merged_df)}")
 
         def _add_toxic_lbl(row):
             row["toxic_str"] = "Toxic" if row["toxic"] >= 0.5 else "Not Toxic"
@@ -77,14 +95,16 @@ class Evaluator:
             _add_toxic_lbl,
             axis=1,
         )
+
+        def add_has_ideology_prompt(row):
+            row["has_ideology_prompt"] = row["prompt"].find("ideology") >-1
+            return row
+        self.merged_df = self.merged_df.apply(add_has_ideology_prompt, axis=1)
+
         print("ANALYSIS I - Failed to respond")
         print(
             "ANALYSIS I.a - Descriptive statistics"
-            " Top 10-grams for failed arg top_ngrams_count_failed_response"
-            "count_success_per_prompt_df\n"
-            "count_success_per_category_df\n"
-            "count_success_per_category_df\n"
-            "count_success_per_toxic_df\n"
+            
         )
 
         self.count_success_per_prompt_df = self.get_cross_counts(
@@ -97,6 +117,10 @@ class Evaluator:
             idx="prompt", col="type"
         )
 
+        self.count_success_per_ideology_prompt_df = self.get_cross_counts(
+            idx="has_ideology_prompt", col="success"
+        )
+
         self.count_success_per_toxic_df = self.get_cross_counts(
             idx="toxic_str", col="success"
         )
@@ -105,12 +129,13 @@ class Evaluator:
             self.analyze_failed_output_w_ngrams(n=10, top=30)
         )
         self.failed_ratio = (
-            self.data[~self.data["success"]] * 100 / float(len(self.data))
+            len(self.data[~self.data["success"]]) * 100 / float(len(self.data))
         )
         self.total = len(self.data)
         self.failed_num = len(self.data[~self.data["success"]])
 
         self.corr_toxicity_no_response = self.calc_corr_toxicity_no_response()
+
 
         # Failed per prompt
 
@@ -118,57 +143,42 @@ class Evaluator:
         self,
         effect="ineffective",
     ):
-        out_path = f"{self.root}/test_{self.ideology}_{effect}.csv"
+        print("Getting Original Data...")
+        out_path = f"{self.root_path}data/test_{self.ideology}_{effect}.csv"
         if Path(out_path).is_file():
             print("original file found")
             return pd.read_csv(out_path)
-        print("original file NOT found")
-        label2id_dict = {
-            "ineffective": 0,
-            "effective": 1,
-        }
+        print(f"original file NOT found {out_path}")
+
+        indices_path = f"{self.root_path}data/out/{self.ideology}_idx.csv"
+
+        preset_indices = []
+        print(f"{indices_path}")
+        assert Path(indices_path).is_file()
+        print("original INDICESS found")
+        preset_indices = pd.read_csv(indices_path)["idx"].values.tolist()[:500]
+        
         seed = 2062021
         name: str = f"notaphoenix/debateorg_w_effect_for_{self.ideology}"
         dataset: Dataset = load_dataset(name, split="test")
+
         dataset = dataset.filter(
-            lambda x: x["label"] == label2id_dict[effect]
+            lambda x: x["label"] == IESTAHuggingFace._LABEL2ID_[effect]
         ).shuffle(seed=seed)
 
-        if len(dataset) > 500:
-            dataset = dataset.select(range(500))
-
-        print(f"{len(dataset)} before len filter")
+        assert len(preset_indices) > 0
+        print(f"filtering using Indices with len {len(preset_indices)}")
         dataset = dataset.filter(
-            lambda x: len(x["text"].split(" ")) > 10
-            and len(x["text"].split(" ")) <= 1024
-            and x["idx"] != 64707
-            and detect(x["text"]) == "en"
-        )
-        print(f"{len(dataset)} after len filter")
-
-        while len(dataset) < 500:
-            idxes = dataset.to_pandas()["idx"].values.tolist()
-            dataset_extra: Dataset = load_dataset(name, split="test")
-            dataset_extra = dataset_extra.filter(
-                lambda x: len(x["text"].split(" ")) > 10
-                and len(x["text"].split(" ")) <= 1024
-                and x["idx"] != 64707
-                and detect(x["text"]) == "en"
+            lambda x: x["idx"] in preset_indices
             )
-
-            dataset_extra = dataset_extra.filter(
-                lambda x: x["label"] == label2id_dict[effect]
-                and ["idx"] not in idxes
-            ).shuffle(seed=seed)
-            dataset_extra = dataset_extra.select(range(500 - len(dataset)))
-            print(f"{len(dataset_extra)} of extra")
-            dataset = concatenate_datasets([dataset, dataset_extra])
-
-        dataset.to_pandas().to_csv(out_path)
-        return dataset.to_pandas()
+        print(f"using preset indices {len(dataset)}")
+        df = dataset.to_pandas()
+        df.to_csv(out_path, index=False)
+        assert len(df) == 500
+        return df
 
     def calc_corr_toxicity_no_response(
-        self, corr_with_arr: list = ["prompt", "category"]
+        self, corr_with_arr: list = ["has_ideology_prompt", "category"]
     ):
         result = []
 
@@ -221,7 +231,7 @@ class Evaluator:
         if col in col_failure_dict.keys():
             df["fail_perc"] = round(
                 df[col_failure_dict[col]] * 100 / df["All"], 2
-            )
+            ) if col_failure_dict[col] in df.columns.to_list() else 0.0
         return df
 
     def classify_effectiveness(self):
@@ -229,12 +239,131 @@ class Evaluator:
         pass
 
     def extract_style_features(self):
-        # 1. extract stykle features
-        # 2. save significance
-        pass
+        self._extract_basic_features()
+        self._extract_transformer_based_features()
 
-    def score_style():
-        pass
+    def _extract_transformer_based_features(self):
+
+        transformer_features_path = f"{self.root_path}{self.generated_args_path}/style_features/style_transformer_features_{self.key}.csv"
+
+        print("extracting transformer features")
+        
+        if Path(transformer_features_path).is_file():
+            self.basic_style_df = pd.read_csv(transformer_features_path)
+        else:
+            # RESET
+            print("Initializing style features pipeline")
+            pipeline_transformer_features = IESTAFeatureExtractionPipeline(
+                save_output=True,
+                exec_transformer_based=True,
+                argument_col="effective_argument",
+                idx_col="idx"
+            )
+            pipeline_transformer_features.spacy_n_processors = 1
+            pipeline_transformer_features.init_and_run()
+            pipeline_transformer_features.reset_input_output()
+            pipeline_transformer_features.out_path = transformer_features_path
+            filter_df = self.data[self.data["success"]]
+            pipeline_transformer_features.set_input(filter_df)
+            assert len(filter_df[filter_df["effective_argument"] == ""]) == 0
+            try:
+                pipeline_transformer_features.annotate()
+                pipeline_transformer_features.save()
+            except Exception as e:
+                print(f"An exception occurred while extracting transformer style features {e}")
+
+    def _extract_basic_features(self):
+        
+        style_features_path = f"{self.root_path}{self.generated_args_path}/style_features/style_features_{self.key}.csv"
+        print("extracting style features")
+
+        if Path(style_features_path).is_file():
+            self.basic_style_df = pd.read_csv(style_features_path)
+        else:
+            pipeline_basic_features = IESTAFeatureExtractionPipeline(
+                save_output=True,
+                exec_transformer_based=False,
+                argument_col="effective_argument",
+                idx_col="idx"
+            )
+            pipeline_basic_features.spacy_n_processors = 2
+            pipeline_basic_features.init_and_run()
+            pipeline_basic_features.reset_input_output()
+            pipeline_basic_features.out_path = style_features_path
+
+            pipeline_basic_features.set_input(self.data[self.data["success"]])
+            try:
+                pipeline_basic_features.annotate()
+                pipeline_basic_features.save()
+            except Exception as e:
+                print(f"An exception occurred while extracting style features {e}")
+
+    def _get_style_features(self):
+        print("get_style_features in one df")
+        style_features_path = f"{self.root_path}{self.generated_args_path}/style_features/style_features_{self.key}.csv"
+        transformer_features_path = f"{self.root_path}{self.generated_args_path}/style_features/style_transformer_features_{self.key}.csv"
+
+        # LIWC
+        liwc_fpath = f"{self.root_path}{self.generated_args_path}/style_features/liwc_{self.key}.csv"
+        liwc_df = pd.read_csv(liwc_fpath, index_col="idx")
+        numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
+        liwc_df = liwc_df.select_dtypes(include=numerics)
+        liwc_df.drop(columns=["Segment", "round"], inplace=True)
+        liwc_df.columns = "liwc_" + liwc_df.columns
+
+        empath_mpqa_df = pd.read_csv(style_features_path)
+        transformers_based_features_df = pd.read_csv(transformer_features_path)
+
+        difference = transformers_based_features_df.columns.difference(
+            empath_mpqa_df.columns
+        )
+        feature_df = empath_mpqa_df.merge(
+            transformers_based_features_df[difference],
+            right_index=True,
+            left_index=True,
+        )
+        feature_df = feature_df.merge(
+            liwc_df,
+            right_index=True,
+            left_index=True,
+        )
+        return feature_df
+
+    def score_style(self) -> pd.DataFrame:
+        self.extract_style_features()
+        top_features: pd.DataFrame = get_top_features(self.ideology)
+        style_features = self._get_style_features()
+
+        print("creating style feature score...")
+        scaler = QuantileTransformer()
+        columns_to_normalize = top_features["feature"].values.tolist()
+        style_features[columns_to_normalize] = style_features[columns_to_normalize].fillna(0.0)
+        style_features[columns_to_normalize] = scaler.fit_transform(
+            style_features[columns_to_normalize]
+        )
+
+        def _add_score_features(row, ideology, top_features):
+            feature_col_name = f"effective ineffective_{ideology}"
+            features_score: float = 0.0
+            for _, feature_row in top_features.iterrows():
+                feature_name = feature_row["feature"]
+                features_score = features_score + (
+                    row[feature_name] * feature_row[feature_col_name] * 1.0
+                )
+            row["features_score"] = features_score
+            return row
+
+        style_features = style_features.apply(
+            _add_score_features,
+            axis=1,
+            args=(
+                self.ideology,
+                top_features,
+            ),
+        )
+
+        #style_features = style_features.sort_values(by=["features_score"], ascending=False)
+        return style_features
 
     def score_morality():
         # like malitiousness
@@ -245,7 +374,7 @@ class Evaluator:
         # percent of correct ones
         pass
 
-    def score_toxicity(texts: list[str], truncate_txt=False):
+    def score_toxicity(self, texts, truncate_txt: bool = False):
         toxigen_roberta = pipeline(
             "text-classification",
             model="tomh/toxigen_roberta",
@@ -253,9 +382,9 @@ class Evaluator:
             truncation=True,
             max_length=512,
         )
-
+        
         def reformat(
-            text_scores: list[dict],
+            text_scores,
         ):  # [{'label': 'LABEL_0', 'score': 0.5929976105690002}, {'label': 'LABEL_1', 'score': 0.40700244903564453}]
             map_ = {"LABEL_0": "non_toxic", "LABEL_1": "toxic"}
             return {map_[x["label"]]: x["score"] for x in text_scores}
@@ -299,7 +428,7 @@ class Evaluator:
         # Generate all possible 3-grams
         n_grams = []
         for i in range(len(tokens) - (n - 1)):
-            n_grams.append(tuple(tokens[i : i + n]))
+            n_grams.append(tuple(tokens[i: i + n]))
 
         # Count the frequency of each 3-gram
         frequencies = Counter(n_grams)

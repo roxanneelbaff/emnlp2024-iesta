@@ -1,0 +1,6 @@
+success,False_liberal,True_liberal,False_conservative,True_conservative
+llamav2_0shot,11.84,36.8,13.23,38.35
+llamav2_0shot_steered_meanl0.2,7.35,23.07,6.88,21.39
+llamav2_0shot_steered_meanl0.5,4.69,13.12,5.5,7.63
+llamav2_0shot_steered_medianl0.2,7.1,20.94,7.08,21.7
+llamav2_1shot,6.81,25.32,9.57,29.46

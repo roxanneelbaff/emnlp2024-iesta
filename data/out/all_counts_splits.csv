@@ -1,0 +1,4 @@
+,Ineffective_conservative,effective_conservative,Ineffective_liberal,effective_liberal
+training,55890,1995,36928,1785
+test,7943,336,5328,248
+validation,15732,599,10552,512

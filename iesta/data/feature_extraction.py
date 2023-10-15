@@ -17,6 +17,7 @@ class IESTAFeatureExtractionPipeline(Pipeline):
         save_output=False,
         out_path=None,
         argument_col: str = "cleaned_text",
+        idx_col: str = "input_id",
         exec_transformer_based: bool = False,
     ):
         super().__init__(
@@ -28,17 +29,18 @@ class IESTAFeatureExtractionPipeline(Pipeline):
         )
         self.argument_col = argument_col
         self.exec_transformer_based = exec_transformer_based
+        self.idx_col = idx_col
 
     def process_input(self) -> list:
         processed = []
-        self.input["input_id"] = self.input.index
-        txt_df = self.input[["input_id", self.argument_col]].copy()
+        self.input[self.idx_col] = self.input.index
+        txt_df = self.input[[self.idx_col, self.argument_col]].copy()
         txt_df = txt_df.rename(
             columns={self.argument_col: "text"},
         )
 
         for idx, row in txt_df.iterrows():
-            processed.append((row.text, {"input_id": row.input_id}))
+            processed.append((row.text, {self.idx_col: row[self.idx_col]}))
 
         return processed
 

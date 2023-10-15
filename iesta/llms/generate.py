@@ -1,44 +1,29 @@
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
 
-import os
 
 import pandas as pd
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
-from langchain.chat_models import ChatOpenAI
-import transformers
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
-from transformers import pipeline
-from langchain.llms import HuggingFacePipeline
 from langchain import PromptTemplate, LLMChain
-import torch
+
 
 from datasets import load_dataset, Dataset
 from iesta.llms import prompts
 
 from iesta.data.huggingface_loader import IESTAHuggingFace
-from ydata_profiling import ProfileReport
 import json
-import pandas as pd
-from tqdm import tqdm
+
 from os.path import exists
 import dataclasses
 
 from datasets.combine import concatenate_datasets
-from ydata_profiling import ProfileReport
 from langdetect import detect
 from langchain.prompts.few_shot import FewShotPromptTemplate
-from langchain.prompts.prompt import PromptTemplate
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from typing import ClassVar
-from langchain.llms import HuggingFaceTextGenInference
+
 from iesta.llms.models import IestaLLM
 import datasets
+from pathlib import Path
 
 
 @dataclasses.dataclass
@@ -52,7 +37,7 @@ class Generator:
     data_save: bool = True
     data_limit: int = 500
     out_file: str = "llms_out/new/"
-    out_ext: str = "" # add steered
+    out_ext: str = ""  # add steered
     seed: int = 2062021
     _temp_flag: bool = True
 
@@ -82,12 +67,28 @@ class Generator:
             self.examples = self.get_examples()
 
     def get_data(self, effect="ineffective"):
+        out_path = f"{self.root_path}out/{self.ideology}_idx.csv"
+        preset_indices = []
+        print(f"{out_path}")
+        if Path(out_path).is_file():
+            print("original file found")
+            preset_indices = pd.read_csv(out_path)["idx"].values.tolist()[:500]
+        
         seed = 2062021
         name: str = f"notaphoenix/debateorg_w_effect_for_{self.ideology}"
         dataset: Dataset = load_dataset(name, split="test")
+
         dataset = dataset.filter(
             lambda x: x["label"] == IESTAHuggingFace._LABEL2ID_[effect]
         ).shuffle(seed=seed)
+
+        if len(preset_indices) > 0:
+            print(f"filtering using Indices with len {len(preset_indices)}")
+            dataset = dataset.filter(
+                lambda x: x["idx"] in preset_indices
+                )
+            print(f"using preset indices {len(dataset)}")
+            return dataset
 
         if len(dataset) > self.data_limit:
             dataset = dataset.select(range(self.data_limit))
@@ -126,11 +127,11 @@ class Generator:
         # dataset = dataset.map(lambda example, idx: {"id": idx, **example}, with_indices=True)
 
         df = dataset.to_pandas().copy()
-        if self.flag_profile_test_data:
-            report = ProfileReport(df=df, minimal=False)
-            report.to_file(
-                f"{self.root_path}llms_out/data_profile_{self.ideology}_test{self.data_limit}_seed{seed}.html"
-            )
+        #if self.flag_profile_test_data:
+        #    report = ProfileReport(df=df, minimal=False)
+        #    report.to_file(
+        #        f"{self.root_path}llms_out/data_profile_{self.ideology}_test{self.data_limit}_seed{seed}.html"
+        #    )
 
         if self.data_save:
             df.to_csv(
@@ -221,11 +222,11 @@ class Generator:
                 f"{self.ideology}_training_{limit}_seed{seed}"
                 f"_{self.n_shots}shot_{original_category}"
             )
-            if self.flag_profile_training_data:
-                report = ProfileReport(df=df, minimal=True)
-                report.to_file(
-                    f"{self.root_path}llms_out/fewshot_examples/{filename}.html"
-                )
+            #if self.flag_profile_training_data:
+            #    report = ProfileReport(df=df, minimal=True)
+            #    report.to_file(
+            #        f"{self.root_path}llms_out/fewshot_examples/{filename}.html"
+            #    )
 
             df.to_csv(
                 f"{self.root_path}llms_out/fewshot_examples/{filename}.csv"

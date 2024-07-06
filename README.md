@@ -1,12 +1,12 @@
 # IESTA - Ineffective-effective Style Transfer for Arguments
-This repository is the code base for the paper "**Improving Argument Effectiveness Across Ideologies using Instruction-tuned Large Language Models**" submitted to COLING 2024.
+This repository is the code base for the paper "**Improving Argument Effectiveness Across Ideologies using Instruction-tuned Large Language Models**" submitted to ARR JUNE 2024.
 
 
 ## Data Links
 
 - **Generated effective arguments**: [[link](https://anonymous.4open.science/r/iesta-june2024/data/llms_out/new/)]
   
-  
+
       > for each each jsonl we share 50 generated arguments (a total of 600 arguments). The rest will be shared upon acceptance.
     
     - Format: `{ideology}_{model-type}_{n}shot{_steered}.jsonl` (for example: conservative_chatgpt_0shot.jsonl)

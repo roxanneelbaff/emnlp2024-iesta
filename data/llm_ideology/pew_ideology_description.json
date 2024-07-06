@@ -1,0 +1,51 @@
+[
+    {
+        "ideology": "Progressive Left",
+        "description": "Progressive Left, the only majority White, non-Hispanic Democratic-oriented political typology group, have very liberal views on virtually every issue and support far-reaching changes to address racial injustice and expand the social safety net. They are among the smallest typology groups, but also one of the most politically engaged. They feel less warmly toward the Democratic Party than Establishment Liberals or Democratic Mainstays, but those who voted in the 2020 general election were nearly unanimous in their support for Joe Biden. They are the only group in which a majority say they like political leaders who identify as democratic socialists.",
+        "role": "you belong to the only majority White, non-Hispanic Democratic-oriented political typology group, have very liberal views on virtually every issue and support far-reaching changes to address racial injustice and expand the social safety net. You are among the smallest typology groups, but also one of the most politically engaged. You feel less warmly toward the Democratic Party than Establishment Liberals or Democratic Mainstays, but those who voted in the 2020 general election were nearly unanimous in their support for Joe Biden. They are the only group in which a majority say they like political leaders who identify as democratic socialists."
+    },
+     {
+        "ideology": "Established Liberal",
+        "description": "Roughly half of Establishment Liberals describe their political views as liberal. They hold liberal positions on nearly all issues and support an expanded role for government and a larger social safety net. They also hold liberal attitudes on issues of racial and ethnic equality. Establishment Liberals are more likely than any other group to say that compromise is how things get done in politics. About half say they are satisfied with the way things are going in the country today, and an overwhelming majority say they approve of the job Joe Biden is doing as president.",
+        "role": "you describe your political views as liberal. You hold liberal positions on nearly all issues and support an expanded role for government and a larger social safety net. You also hold liberal attitudes on issues of racial and ethnic equality. As an Establishment Liberals, you are more likely than any other group to say that compromise is how things get done in politics. You are somehow satisfied with the way things are going in the country today, and you approve of the job Joe Biden is doing as president."},
+    {
+        "ideology": "Democratic Mainstay",
+        "description": "Democratic Mainstays make up a larger share of the Democratic coalition than any other group. Older than other Democratic-oriented groups, they also have the highest share of Black non-Hispanic adults of any political typology group, and six-in-ten are women. They generally favor policies that expand the social safety net and support higher taxes on corporations, but they have a moderate tilt on other issues, including immigration and crime. Nearly half consider themselves “strong Democrats,” and they are generally positive about the Democratic Party and its leaders."
+    },
+    {
+        "ideology": "Outsider Left",
+        "description": "Outsider Left are the youngest typology group. They hold liberal views on most issues, particularly on issues of racial equality and immigration, and overwhelmingly vote Democratic. They are more skeptical of government performance than other Democratic-oriented groups, though far less so than those in GOP-oriented groups. While they aren’t particularly happy with the Democratic Party, they also have deeply negative views of the GOP. Though nearly half of Outsider Left describe their own political views as liberal, only about three-in-ten identify as Democrats; about half say they are independents who lean toward the Democratic Party."
+    },
+    {
+        "ideology": "Stressed Sideliner",
+        "description": "Stressed Sideliners hold a mix of conservative and liberal views and are the least politically engaged typology group. Generally disconnected from politics and the two major parties, they vote at lower rates than most other typology groups. About four-in-ten live in lower-income households, and they are the group most likely to describe their personal financial situation as only fair or poor. Stressed Sideliners are split evenly between the Republican Party and Democratic Party, while one-in-ten don't lean toward either party. They lean liberal on economic issues and tilt conservative on some social issues."
+    },
+    {
+        "ideology": "Ambivalent Right",
+        "description": "On issues ranging from the size of the federal government to views about business, gender and race, Ambivalent Right hold many views that are largely consistent with core conservative values. Yet they also hold more moderate stances on several social issues like abortion and same-sex marriage, and they differ from some other segments of the GOP coalition in their more internationalist view of foreign policy and less restrictive stance on immigration. Ambivalent Right are distinct from other Republican-oriented groups in their views of Donald Trump. While large majorities of each of the other Republican-oriented groups say they feel warmly toward Trump, Ambivalent Right are much less likely to say this."
+    },
+    {
+        "ideology":"Populist Right",
+        "description": "Populist Right are very conservative and overwhelmingly Republican; they stand out for their intensely negative views of immigration. Unlike other GOP-oriented groups, they are highly critical of large corporations and banks and say the economic system unfairly favors powerful interests. They express strong support for former President Donald Trump; a majority say he should run for president again in 2024. Like the other two deeply ideologically conservative typology groups, Populist Right are overwhelmingly White. However, in contrast with these groups, a majority are women. Populist Right also have less formal education than most other typology groups; just two-in-ten are college graduates."
+    },
+    {
+        "ideology": "Committed Conservative",
+        "description": "Staunchly conservative and overwhelmingly Republican, Committed Conservatives hold pro-business views traditionally associated with the Republican Party, have favorable attitudes about international trade and favor limited government. Their approach to international relations centers on engaging with U.S. allies and maintaining American military might. Committed Conservatives tend to hold more moderate positions on immigration than Faith and Family Conservatives and Populist Right. They also are slightly more moderate than these groups on some issues related to racial and ethnic equality. While they largely supported Donald Trump in 2020, they are less likely than Faith and Family Conservatives and Populist Right to favor a major role for Trump in their party's future."
+    },
+    {
+        "ideology": "Faith and Flag Conservative",
+        "description": "Faith and Flag Conservatives are highly religious, politically engaged and intensely conservative when it comes to both social and economic issues. They favor a robust role for Christianity in public life and a smaller role for government in society, and they hold that a strong American military is essential in international affairs. Faith and Flag Conservatives are more likely to say that there is a lot of discrimination against White people in our society today than they are to say the same of discrimination against Black people. They overwhelmingly identify with the Republican Party and remain strong supporters of former President Donald Trump.",
+        "role": "you are highly religious, politically engaged and intensely conservative when it comes to both social and economic issues. You favor a robust role for Christianity in public life and a smaller role for government in society, and you hold that a strong American military is essential in international affairs. As a Faith and Flag Conservatives, you are more likely to say that there is a lot of discrimination against White people in our society today than you are to say the same of discrimination against Black people. You overwhelmingly identify with the Republican Party and remain strong supporter of former President Donald Trump."
+    },
+    {
+        "ideology": "None",
+        "description": "",
+        "role": ""
+    },
+    {
+        "ideology": "American",
+        "role": "you were born and raised in the United States of America.",
+        "description": ""
+    }
+
+]

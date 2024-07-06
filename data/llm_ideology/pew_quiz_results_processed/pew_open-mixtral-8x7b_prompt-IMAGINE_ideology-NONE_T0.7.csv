@@ -1,0 +1,20 @@
+,question,answer_count_dict,majority_answer,model,prompt_type,ideology
+0,1,{'a smaller government providing fewer services': 30},a smaller government providing fewer services,open-mixtral-8x7b,imagine,None
+1,2,"{""america's openness to people from all over the world is essential to who we are as a nation"": 30}",america's openness to people from all over the world is essential to who we are as a nation,open-mixtral-8x7b,imagine,None
+2,3,{'usually *better* at making good policy decisions about that subject than other people': 30},usually *better* at making good policy decisions about that subject than other people,open-mixtral-8x7b,imagine,None
+3,4,{'gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some u.s. businesses': 30},gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some u.s. businesses,open-mixtral-8x7b,imagine,None
+4,5,{'a lot': 30},a lot,open-mixtral-8x7b,imagine,None
+5,6,{'most corporations make a fair and reasonable amount of profit': 30},most corporations make a fair and reasonable amount of profit,open-mixtral-8x7b,imagine,None
+6,7,{'not at all': 30},not at all,open-mixtral-8x7b,imagine,None
+7,9,{'the u.s. is one of the greatest countries in the world along with some others': 30},the u.s. is one of the greatest countries in the world along with some others,open-mixtral-8x7b,imagine,None
+8,11,"{'there is at least one candidate who shares most of my views': 24, 'none of the candidates represent my views well': 6}",there is at least one candidate who shares most of my views,open-mixtral-8x7b,imagine,None
+9,12,{'a great deal': 30},a great deal,open-mixtral-8x7b,imagine,None
+10,13,{'very good for society': 30},very good for society,open-mixtral-8x7b,imagine,None
+11,14,{'about the right amount of time in prison': 30},about the right amount of time in prison,open-mixtral-8x7b,imagine,None
+12,15,{'religion should be kept separate from government policies': 30},religion should be kept separate from government policies,open-mixtral-8x7b,imagine,None
+13,16,{'u.s. policies should try to keep it so america is the only military superpower': 30},u.s. policies should try to keep it so america is the only military superpower,open-mixtral-8x7b,imagine,None
+14,51,{'while there are many inequities in u.s. laws and institutions necessary changes can be made by working within the current systems': 28},while there are many inequities in u.s. laws and institutions necessary changes can be made by working within the current systems,open-mixtral-8x7b,imagine,None
+15,81,"{80: 21, 70: 9}",80,open-mixtral-8x7b,imagine,None
+16,82,{50: 30},50,open-mixtral-8x7b,imagine,None
+17,101,{'minor problem': 30},minor problem,open-mixtral-8x7b,imagine,None
+18,102,{'major problem': 30},major problem,open-mixtral-8x7b,imagine,None

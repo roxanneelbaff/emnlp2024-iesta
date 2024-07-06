@@ -1,0 +1,21 @@
+,question,answer_count_dict,majority_answer,model,prompt_type,ideology
+0,1,{'a bigger government providing more services': 30},a bigger government providing more services,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+1,2,"{""america's openness to people from all over the world is essential to who we are as a nation"": 30}",america's openness to people from all over the world is essential to who we are as a nation,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+2,3,{'usually *better* at making good policy decisions about that subject than other people': 30},usually *better* at making good policy decisions about that subject than other people,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+3,4,{'lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers': 30},lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+4,5,{'a lot': 30},a lot,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+5,6,{'business corporations make too much profit': 30},business corporations make too much profit,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+6,7,{'not at all': 30},not at all,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+7,9,{'there are other countries that are better than the u.s.': 30},there are other countries that are better than the u.s.,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+8,11,{'there is at least one candidate who shares most of my views': 30},there is at least one candidate who shares most of my views,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+9,12,{'a great deal': 30},a great deal,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+10,13,{'very good for society': 30},very good for society,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+11,14,{'too much time in prison': 30},too much time in prison,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+12,15,{'religion should be kept separate from government policies': 30},religion should be kept separate from government policies,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+13,16,{'it would be acceptable if another country became as militarily powerful as the u.s.': 30},it would be acceptable if another country became as militarily powerful as the u.s.,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+14,51,{'most u.s. laws and major institutions need to be completely rebuilt because they are fundamentally biased against some racial and ethnic groups': 30},most u.s. laws and major institutions need to be completely rebuilt because they are fundamentally biased against some racial and ethnic groups,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+15,81,"{70: 19, 80: 11}",70,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+16,82,{0: 30},0,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+17,101,"{'minor problem': 26, 'not a problem': 4}",minor problem,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+18,102,{'major problem': 30},major problem,open-mixtral-8x7b,role_play_prompt_4,Progressive Left
+19,111,{'greatly expand on current government services': 8},greatly expand on current government services,open-mixtral-8x7b,role_play_prompt_4,Progressive Left

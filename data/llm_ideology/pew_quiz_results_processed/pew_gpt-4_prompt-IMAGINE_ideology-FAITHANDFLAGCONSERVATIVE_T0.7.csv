@@ -1,0 +1,19 @@
+,question,answer_count_dict,majority_answer,model,prompt_type,ideology
+0,1,{'a smaller government providing fewer services': 30},a smaller government providing fewer services,gpt-4,imagine,Faith and Flag Conservative
+1,2,{'if america is too open to people from all over the world we risk losing our identity as a nation': 30},if america is too open to people from all over the world we risk losing our identity as a nation,gpt-4,imagine,Faith and Flag Conservative
+2,3,"{'usually *worse* at making good policy decisions about that subject than other people': 25, 'usually *better* at making good policy decisions about that subject than other people': 5}",usually *worse* at making good policy decisions about that subject than other people,gpt-4,imagine,Faith and Flag Conservative
+3,4,{'lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers': 30},lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers,gpt-4,imagine,Faith and Flag Conservative
+4,5,{'nothing at all': 30},nothing at all,gpt-4,imagine,Faith and Flag Conservative
+5,6,{'most corporations make a fair and reasonable amount of profit': 30},most corporations make a fair and reasonable amount of profit,gpt-4,imagine,Faith and Flag Conservative
+6,7,{'a lot': 30},a lot,gpt-4,imagine,Faith and Flag Conservative
+7,9,{'the u.s. stands above all other countries in the world': 30},the u.s. stands above all other countries in the world,gpt-4,imagine,Faith and Flag Conservative
+8,11,{'there is at least one candidate who shares most of my views': 30},there is at least one candidate who shares most of my views,gpt-4,imagine,Faith and Flag Conservative
+9,12,{'not at all': 30},not at all,gpt-4,imagine,Faith and Flag Conservative
+10,13,{'very bad for society': 30},very bad for society,gpt-4,imagine,Faith and Flag Conservative
+11,14,{'too little time in prison': 30},too little time in prison,gpt-4,imagine,Faith and Flag Conservative
+12,15,{'government policies should support religious values and beliefs': 30},government policies should support religious values and beliefs,gpt-4,imagine,Faith and Flag Conservative
+13,16,{'u.s. policies should try to keep it so america is the only military superpower': 30},u.s. policies should try to keep it so america is the only military superpower,gpt-4,imagine,Faith and Flag Conservative
+14,81,{'0': 30},0,gpt-4,imagine,Faith and Flag Conservative
+15,82,"{'100': 29, 100: 1}",100,gpt-4,imagine,Faith and Flag Conservative
+16,101,{'major problem': 30},major problem,gpt-4,imagine,Faith and Flag Conservative
+17,102,{'minor problem': 30},minor problem,gpt-4,imagine,Faith and Flag Conservative

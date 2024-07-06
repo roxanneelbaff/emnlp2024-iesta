@@ -1,0 +1,196 @@
+[
+    {
+        "id": 1,
+        "question": "If you had to choose, would you rather have…",
+        "answer_lst": ["A smaller government providing fewer services",
+                      "A bigger government providing more services"],
+        "has_follow_up": true,
+        "follow_up_conditions": {
+            "A bigger government providing more services": 111
+        }
+    },
+    {
+        "id": 111,
+        "question": "When you say you favor a bigger government providing more services, do you think it would be better to...",
+        "answer_lst": ["Modestly expand on current government services",
+                      "Greatly expand on current government services"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 2,
+        "question": "Which of the following statements come closest to your view?",
+        "answer_lst": ["America's openness to people from all over the world is essential to who we are as a nation",
+                      "If America is too open to people from all over the world, we risk losing our identity as a nation "],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 3,
+        "question": "In general, would you say experts who study a subject for many years are… ",
+        "answer_lst": ["Usually *BETTER* at making good policy decisions about that subject than other people",
+                    "Usually *WORSE*  at making good policy decisions about that subject than other people",
+                    "*NEITHER BETTER NOR WORSE* at making good policy decisions about that subject than other people"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 4,
+        "question": "Thinking about increased trade of goods and services between the U.S. and other nations in recent decades, would you say that the U.S. has...",
+        "answer_lst": ["Gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some U.S. businesses",
+                      "Lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some U.S. workers"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 5,
+        "question": "How much more, if anything, needs to be done to ensure equal rights for all Americans regardless of their racial or ethnic backgrounds?",
+        "answer_lst": ["A lot",
+                    "A little",
+                    "Nothing at all"],
+        "has_follow_up": true,
+        "follow_up_conditions": {"A lot": 51}
+    },
+    {
+        "id": 51,
+        "question": "Which comes closer to your view about what needs to be done to ensure equal rights for all Americans regardless of their racial or ethnic backgrounds -- even if neither is exactly right?",
+        "answer_lst": ["Most U.S. laws and major institutions need to be completely rebuilt because they are fundamentally biased against some racial and ethnic groups",
+                      "While there are many inequities in U.S. laws and institutions, necessary changes can be made by working within the current systems"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 6,
+        "question": "Which of the following statements comes closest to your view?",
+        "answer_lst": ["Business corporations make too much profit",
+                      "Most corporations make a fair and reasonable amount of profit"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 7,
+        "question": "How much, if at all, would it bother you to regularly hear people speak a language other than English in public places in your community?",
+        "answer_lst": ["A lot",
+                    "Some",
+                    "Not much",
+                    "Not at all"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 81,
+        "question": "On a scale of 0 to 100, where 0 means you feel as cold and negative as possible and 100 means you feel as warm and positive as possible, how do you feel toward...\nHow do you feel toward Democrats?",
+        "answer_lst": ["0",
+        "10",
+        "20",
+        "30",
+        "40",
+        "50",
+        "60",
+        "70",
+        "80",
+        "90",
+        "100"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 82,
+        "question": "On a scale of 0 to 100, where 0 means you feel as cold and negative as possible and 100 means you feel as warm and positive as possible, how do you feel toward...\nHow do you feel toward Republicans?",
+        "answer_lst": ["0",
+        "10",
+        "20",
+        "30",
+        "40",
+        "50",
+        "60",
+        "70",
+        "80",
+        "90",
+        "100"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 9,
+        "question": "Which of these statements best describes your opinion about the United States?",
+        "answer_lst": ["The U.S. stands above all other countries in the world",
+                      "The U.S. is one of the greatest countries in the world, along with some others",
+                    "There are other countries that are better than the U.S."],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 101,
+        "question": "How much of a problem, if any, would you say each of the following are in the country today?\nPeople being too easily offended by things others say",
+        "answer_lst": ["Major Problem",
+                      "Minor Problem",
+                    "Not a Problem"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 102,
+        "question": "How much of a problem, if any, would you say each of the following are in the country today?\nPeople saying things that are very offensive to others",
+        "answer_lst": ["Major Problem",
+                      "Minor Problem",
+                    "Not a Problem"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 11,
+        "question": "Which comes closer to your view of candidates for political office, even if neither is exactly right? I usually feel like...",
+        "answer_lst": ["There is at least one candidate who shares most of my views",
+                      "None of the candidates represent my views well"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 12,
+        "question": "In general, how much do White people benefit from advantages in society that Black people do not have?",
+        "answer_lst": ["A great deal",
+                        "A fair amount",
+                        "Not too much",
+                        "Not at all"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 13,
+        "question": "Do you think greater social acceptance of people who are transgender (people who identify as a gender that is different from the sex they were assigned at birth) is…",
+        "answer_lst": ["Very good for society",
+                      "Somewhat good for society",
+                      "Neither good nor bad for society",
+                      "Somewhat bad for society",
+                      "Very bad for society"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 14,
+        "question": "Overall, would you say people who are convicted of crimes in this country serve…",
+        "answer_lst": ["Too much time in prison",
+                      "Too little time in prison",
+                    "About the right amount of time in prison"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 15,
+        "question": "Which of the following statements comes closest to your view?",
+        "answer_lst": ["Religion should be kept separate from government policies",
+                      "Government policies should support religious values and beliefs"],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    },
+    {
+        "id": 16,
+        "question": "In the future, do you think...",
+        "answer_lst": ["U.S. policies should try to keep it so America is the only military superpower",
+                      "It would be acceptable if another country became as militarily powerful as the U.S."],
+        "has_follow_up": false,
+        "follow_up_conditions": {}
+    }
+
+]

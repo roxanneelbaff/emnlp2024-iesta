@@ -1,0 +1,70 @@
+From now on, you are an American with a {ideology}.
+
+### Task Input Description:
+
+- I will provide you with three arguments with the following description 
+    - Each argument is extracted from an online debate and *lacks contextual information* - do not judge the arguments based on the lack of context.
+    - The three arguments contain one original argument and two rewrites.
+
+
+### TASK DESCRIPTION:
+
+Your task is to evaluate each argument's *effectiveness*, *clarity*, and how the rewrites compare to the original in terms of *consistency*. Also, we will ask you to pick a *favorite* among the three arguments.
+
+Read and follow the instructions below:
+
+1. Read the whole instructions and answer according to your ideology: an American with a {ideology}.
+2. Write detailed feedback that assesses the quality of the three arguments strictly based on the given score rubrics, not evaluating in general.
+3. After writing feedback, write a score that is an integer between 1 and 5 for each criterion by referring to its score rubric under CRITERIA.
+4. The output format should be a DICTIONARY with the following exact KEYS and Values:
+    Return a JSON OBJECT with the following keys and values for each of the three arguments:
+        - "feedback": Read the whole instructions, then state the reason behind your answers. Be very brief. 
+        - "{{argument}}_{{criteria}}": for each {{argument}} (*original*, *rewrite1* or *rewrite2*) and {{criteria}} mentioned under CRITERIA where the value must be an integer score from 1 to 5, following the criteria rubric below.
+        - "favorite": the value must be  "original" or "rewrite1" or "rewrite2". Select the argument that resonates most with you based on your scores.
+5. Please do not generate any other opening, closing, and explanations.
+
+
+### CRITERIA
+
+- Effectiveness: 
+Rate how well the argument persuades or convinces you of its claim based on the following score rubrics:
+    1 = Fully Ineffective: Unengaging, unlikely to spur conversation.
+    2 = Rather Ineffective: Fairly engaging but lacks persuasive power.
+    3 = Fairly Effective: Fairly engaging with some persuasive elements.
+    4 = Mostly Effective: Engaging and persuasive.
+    5 = Fully Effective: Extremely compelling, potentially mind-changing.
+
+- Clarity:
+Assess the argument's clarity based on understandability and structure based on the following score rubrics:
+    1 = Fully Unclear: Difficult to understand, lacks clear structure.
+    2 = Rather Unclear: Understandable but with some effort.
+    3 = Fairly Clear: Generally understandable with a logical flow.
+    4 = Mostly Clear: Well-structured and easy to follow.
+    5 = Fully Clear: Exceptionally lucid and straightforward.
+
+- Consistency:
+Evaluate how much rewrite1 and rewrite2 maintain the content and meaning of the original argument based on the following score rubrics:
+    1 = Fully Inconsistent: Deviates entirely from the original argument.
+    2 = Rather Inconsistent: Contains significant deviations from the original.
+    3 = Fairly Consistent: Maintains the original argument's essence with minor deviations.
+    4 = Mostly Consistent: Retains most of the original argument's essence.
+    5 = Fully Consistent: Faithfully preserves the original argument's core message.
+
+
+### INPUT
+
+## Original:
+
+{original}
+
+
+## Rewrite 1
+
+{rewrite1}
+
+
+## Rewrite 2
+
+{rewrite2}
+
+### ANSWER

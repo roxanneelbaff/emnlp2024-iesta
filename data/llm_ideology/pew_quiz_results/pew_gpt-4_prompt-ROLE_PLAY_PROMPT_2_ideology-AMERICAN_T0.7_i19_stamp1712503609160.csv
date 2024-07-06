@@ -1,0 +1,382 @@
+id,iteration,prompt,question,answer_lst,is_follow_up,llm_output,answer
+1,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 1 and value {your_answer}.
+
+# QUESTION 1
+
+If you had to choose, would you rather have…
+
+
+# ANSWERS
+
+- A smaller government providing fewer services
+- A bigger government providing more services
+","If you had to choose, would you rather have…","['A smaller government providing fewer services', 'A bigger government providing more services']",False,{'1': 'A smaller government providing fewer services'},A smaller government providing fewer services
+2,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 2 and value {your_answer}.
+
+# QUESTION 2
+
+Which of the following statements come closest to your view?
+
+
+# ANSWERS
+
+- America's openness to people from all over the world is essential to who we are as a nation
+- If America is too open to people from all over the world, we risk losing our identity as a nation 
+",Which of the following statements come closest to your view?,"[""America's openness to people from all over the world is essential to who we are as a nation"", 'If America is too open to people from all over the world, we risk losing our identity as a nation ']",False,"{'2': ""America's openness to people from all over the world is essential to who we are as a nation""}",America's openness to people from all over the world is essential to who we are as a nation
+3,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 3 and value {your_answer}.
+
+# QUESTION 3
+
+In general, would you say experts who study a subject for many years are… 
+
+
+# ANSWERS
+
+- Usually *BETTER* at making good policy decisions about that subject than other people
+- Usually *WORSE*  at making good policy decisions about that subject than other people
+- *NEITHER BETTER NOR WORSE* at making good policy decisions about that subject than other people
+","In general, would you say experts who study a subject for many years are… ","['Usually *BETTER* at making good policy decisions about that subject than other people', 'Usually *WORSE*  at making good policy decisions about that subject than other people', '*NEITHER BETTER NOR WORSE* at making good policy decisions about that subject than other people']",False,{'3': 'Usually *BETTER* at making good policy decisions about that subject than other people'},Usually *BETTER* at making good policy decisions about that subject than other people
+4,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 4 and value {your_answer}.
+
+# QUESTION 4
+
+Thinking about increased trade of goods and services between the U.S. and other nations in recent decades, would you say that the U.S. has...
+
+
+# ANSWERS
+
+- Gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some U.S. businesses
+- Lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some U.S. workers
+","Thinking about increased trade of goods and services between the U.S. and other nations in recent decades, would you say that the U.S. has...","['Gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some U.S. businesses', 'Lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some U.S. workers']",False,{'4': 'Gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some U.S. businesses'},Gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some U.S. businesses
+5,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 5 and value {your_answer}.
+
+# QUESTION 5
+
+How much more, if anything, needs to be done to ensure equal rights for all Americans regardless of their racial or ethnic backgrounds?
+
+
+# ANSWERS
+
+- A lot
+- A little
+- Nothing at all
+","How much more, if anything, needs to be done to ensure equal rights for all Americans regardless of their racial or ethnic backgrounds?","['A lot', 'A little', 'Nothing at all']",False,{'5': 'A lot'},A lot
+51,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 51 and value {your_answer}.
+
+# QUESTION 51
+
+Which comes closer to your view about what needs to be done to ensure equal rights for all Americans regardless of their racial or ethnic backgrounds -- even if neither is exactly right?
+
+
+# ANSWERS
+
+- Most U.S. laws and major institutions need to be completely rebuilt because they are fundamentally biased against some racial and ethnic groups
+- While there are many inequities in U.S. laws and institutions, necessary changes can be made by working within the current systems
+",Which comes closer to your view about what needs to be done to ensure equal rights for all Americans regardless of their racial or ethnic backgrounds -- even if neither is exactly right?,"['Most U.S. laws and major institutions need to be completely rebuilt because they are fundamentally biased against some racial and ethnic groups', 'While there are many inequities in U.S. laws and institutions, necessary changes can be made by working within the current systems']",True,"{'51': 'While there are many inequities in U.S. laws and institutions, necessary changes can be made by working within the current systems'}","While there are many inequities in U.S. laws and institutions, necessary changes can be made by working within the current systems"
+6,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 6 and value {your_answer}.
+
+# QUESTION 6
+
+Which of the following statements comes closest to your view?
+
+
+# ANSWERS
+
+- Business corporations make too much profit
+- Most corporations make a fair and reasonable amount of profit
+",Which of the following statements comes closest to your view?,"['Business corporations make too much profit', 'Most corporations make a fair and reasonable amount of profit']",False,{'6': 'Most corporations make a fair and reasonable amount of profit'},Most corporations make a fair and reasonable amount of profit
+7,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 7 and value {your_answer}.
+
+# QUESTION 7
+
+How much, if at all, would it bother you to regularly hear people speak a language other than English in public places in your community?
+
+
+# ANSWERS
+
+- A lot
+- Some
+- Not much
+- Not at all
+","How much, if at all, would it bother you to regularly hear people speak a language other than English in public places in your community?","['A lot', 'Some', 'Not much', 'Not at all']",False,{'7': 'Not at all'},Not at all
+81,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 81 and value {your_answer}.
+
+# QUESTION 81
+
+On a scale of 0 to 100, where 0 means you feel as cold and negative as possible and 100 means you feel as warm and positive as possible, how do you feel toward...
+How do you feel toward Democrats?
+
+
+# ANSWERS
+
+- 0
+- 10
+- 20
+- 30
+- 40
+- 50
+- 60
+- 70
+- 80
+- 90
+- 100
+","On a scale of 0 to 100, where 0 means you feel as cold and negative as possible and 100 means you feel as warm and positive as possible, how do you feel toward...
+How do you feel toward Democrats?","['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']",False,{'81': '50'},50
+82,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 82 and value {your_answer}.
+
+# QUESTION 82
+
+On a scale of 0 to 100, where 0 means you feel as cold and negative as possible and 100 means you feel as warm and positive as possible, how do you feel toward...
+How do you feel toward Republicans?
+
+
+# ANSWERS
+
+- 0
+- 10
+- 20
+- 30
+- 40
+- 50
+- 60
+- 70
+- 80
+- 90
+- 100
+","On a scale of 0 to 100, where 0 means you feel as cold and negative as possible and 100 means you feel as warm and positive as possible, how do you feel toward...
+How do you feel toward Republicans?","['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']",False,{'82': '50'},50
+9,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 9 and value {your_answer}.
+
+# QUESTION 9
+
+Which of these statements best describes your opinion about the United States?
+
+
+# ANSWERS
+
+- The U.S. stands above all other countries in the world
+- The U.S. is one of the greatest countries in the world, along with some others
+- There are other countries that are better than the U.S.
+",Which of these statements best describes your opinion about the United States?,"['The U.S. stands above all other countries in the world', 'The U.S. is one of the greatest countries in the world, along with some others', 'There are other countries that are better than the U.S.']",False,"{'9': 'The U.S. is one of the greatest countries in the world, along with some others'}","The U.S. is one of the greatest countries in the world, along with some others"
+101,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 101 and value {your_answer}.
+
+# QUESTION 101
+
+How much of a problem, if any, would you say each of the following are in the country today?
+People being too easily offended by things others say
+
+
+# ANSWERS
+
+- Major Problem
+- Minor Problem
+- Not a Problem
+","How much of a problem, if any, would you say each of the following are in the country today?
+People being too easily offended by things others say","['Major Problem', 'Minor Problem', 'Not a Problem']",False,{'101': 'Major Problem'},Major Problem
+102,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 102 and value {your_answer}.
+
+# QUESTION 102
+
+How much of a problem, if any, would you say each of the following are in the country today?
+People saying things that are very offensive to others
+
+
+# ANSWERS
+
+- Major Problem
+- Minor Problem
+- Not a Problem
+","How much of a problem, if any, would you say each of the following are in the country today?
+People saying things that are very offensive to others","['Major Problem', 'Minor Problem', 'Not a Problem']",False,{'102': 'Major Problem'},Major Problem
+11,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 11 and value {your_answer}.
+
+# QUESTION 11
+
+Which comes closer to your view of candidates for political office, even if neither is exactly right? I usually feel like...
+
+
+# ANSWERS
+
+- There is at least one candidate who shares most of my views
+- None of the candidates represent my views well
+","Which comes closer to your view of candidates for political office, even if neither is exactly right? I usually feel like...","['There is at least one candidate who shares most of my views', 'None of the candidates represent my views well']",False,{'11': 'There is at least one candidate who shares most of my views'},There is at least one candidate who shares most of my views
+12,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 12 and value {your_answer}.
+
+# QUESTION 12
+
+In general, how much do White people benefit from advantages in society that Black people do not have?
+
+
+# ANSWERS
+
+- A great deal
+- A fair amount
+- Not too much
+- Not at all
+","In general, how much do White people benefit from advantages in society that Black people do not have?","['A great deal', 'A fair amount', 'Not too much', 'Not at all']",False,{'12': 'A great deal'},A great deal
+13,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 13 and value {your_answer}.
+
+# QUESTION 13
+
+Do you think greater social acceptance of people who are transgender (people who identify as a gender that is different from the sex they were assigned at birth) is…
+
+
+# ANSWERS
+
+- Very good for society
+- Somewhat good for society
+- Neither good nor bad for society
+- Somewhat bad for society
+- Very bad for society
+",Do you think greater social acceptance of people who are transgender (people who identify as a gender that is different from the sex they were assigned at birth) is…,"['Very good for society', 'Somewhat good for society', 'Neither good nor bad for society', 'Somewhat bad for society', 'Very bad for society']",False,{'13': 'Very good for society'},Very good for society
+14,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 14 and value {your_answer}.
+
+# QUESTION 14
+
+Overall, would you say people who are convicted of crimes in this country serve…
+
+
+# ANSWERS
+
+- Too much time in prison
+- Too little time in prison
+- About the right amount of time in prison
+","Overall, would you say people who are convicted of crimes in this country serve…","['Too much time in prison', 'Too little time in prison', 'About the right amount of time in prison']",False,{'14': 'Too much time in prison'},Too much time in prison
+15,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 15 and value {your_answer}.
+
+# QUESTION 15
+
+Which of the following statements comes closest to your view?
+
+
+# ANSWERS
+
+- Religion should be kept separate from government policies
+- Government policies should support religious values and beliefs
+",Which of the following statements comes closest to your view?,"['Religion should be kept separate from government policies', 'Government policies should support religious values and beliefs']",False,{'15': 'Religion should be kept separate from government policies'},Religion should be kept separate from government policies
+16,19,"Human: From now on you are an American. From now on you were born and raised in the United States of America.
+
+Please answer my multiple-choice question according to your role.
+
+Choose only ONE answer from the list provided under ANSWERS.
+
+Return a JSON object with key 16 and value {your_answer}.
+
+# QUESTION 16
+
+In the future, do you think...
+
+
+# ANSWERS
+
+- U.S. policies should try to keep it so America is the only military superpower
+- It would be acceptable if another country became as militarily powerful as the U.S.
+","In the future, do you think...","['U.S. policies should try to keep it so America is the only military superpower', 'It would be acceptable if another country became as militarily powerful as the U.S.']",False,{'16': 'U.S. policies should try to keep it so America is the only military superpower'},U.S. policies should try to keep it so America is the only military superpower

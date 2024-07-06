@@ -55,4 +55,4 @@ if __name__ == "__main__":
     for ideology in ideologies:
         run(ideology, args.models, args.examples_k, args.limit)
 
-#  nohup python3 scripts/generate_w_llms.py  -k 0 -m llamav2  > logs/llamav20shot.log 2>&1 &
+#  nohup python3 scripts/generate_w_llms.py    > {log_name}.log 2>&1 &

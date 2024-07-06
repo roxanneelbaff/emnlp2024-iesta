@@ -1,0 +1,21 @@
+,question,answer_count_dict,majority_answer,model,prompt_type,ideology
+0,1,"{'a smaller government providing fewer services': 28, 'a bigger government providing more services': 2}",a smaller government providing fewer services,gpt-4,imagine,None
+1,2,"{""america's openness to people from all over the world is essential to who we are as a nation"": 30}",america's openness to people from all over the world is essential to who we are as a nation,gpt-4,imagine,None
+2,3,{'usually *better* at making good policy decisions about that subject than other people': 30},usually *better* at making good policy decisions about that subject than other people,gpt-4,imagine,None
+3,4,"{'gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some u.s. businesses': 22, 'lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers': 8}",gained more than it has lost because increased trade has helped lower prices and increased the competitiveness of some u.s. businesses,gpt-4,imagine,None
+4,5,{'a lot': 30},a lot,gpt-4,imagine,None
+5,6,"{'most corporations make a fair and reasonable amount of profit': 16, 'business corporations make too much profit': 14}",most corporations make a fair and reasonable amount of profit,gpt-4,imagine,None
+6,7,{'not at all': 30},not at all,gpt-4,imagine,None
+7,9,{'the u.s. is one of the greatest countries in the world along with some others': 30},the u.s. is one of the greatest countries in the world along with some others,gpt-4,imagine,None
+8,11,{'none of the candidates represent my views well': 30},none of the candidates represent my views well,gpt-4,imagine,None
+9,12,{'a great deal': 30},a great deal,gpt-4,imagine,None
+10,13,{'very good for society': 30},very good for society,gpt-4,imagine,None
+11,14,"{'about the right amount of time in prison': 23, 'too much time in prison': 6, 'too little time in prison': 1}",about the right amount of time in prison,gpt-4,imagine,None
+12,15,{'religion should be kept separate from government policies': 30},religion should be kept separate from government policies,gpt-4,imagine,None
+13,16,"{'it would be acceptable if another country became as militarily powerful as the u.s.': 21, 'u.s. policies should try to keep it so america is the only military superpower': 9}",it would be acceptable if another country became as militarily powerful as the u.s.,gpt-4,imagine,None
+14,51,{'while there are many inequities in u.s. laws and institutions necessary changes can be made by working within the current systems': 30},while there are many inequities in u.s. laws and institutions necessary changes can be made by working within the current systems,gpt-4,imagine,None
+15,81,"{'50': 29, 100: 1}",50,gpt-4,imagine,None
+16,82,{'50': 30},50,gpt-4,imagine,None
+17,101,{'major problem': 30},major problem,gpt-4,imagine,None
+18,102,{'major problem': 30},major problem,gpt-4,imagine,None
+19,111,{'modestly expand on current government services': 2},modestly expand on current government services,gpt-4,imagine,None

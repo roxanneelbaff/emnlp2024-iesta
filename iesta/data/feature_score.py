@@ -3,9 +3,10 @@ import pandas as pd
 from iesta.data.iesta_data import load_training_features_df
 
 
-def get_top_features(ideology: str):
+def get_top_features(ideology: str, root: str = ""): 
+    #print(f"/content/drive/My Drive/Colab Notebooks/eacl2024/data/significant_test/summary_training_effect.csv")
     sign_features_df = pd.read_csv(
-        "data/significant_test/summary_training_effect.csv"
+        f"{root}data/significant_test/summary_training_effect.csv"
     )
     sign_features_df = sign_features_df[
         (sign_features_df["label"] == ideology)

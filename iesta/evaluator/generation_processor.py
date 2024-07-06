@@ -36,15 +36,18 @@ def get_between_chars(str_, char_: str = '"'):
         indices = find_all(str_, char_)
 
         if len(indices) % 2 != 0:
-            str_ = str_[indices[0] + len(char_):]
+            str_ = str_[indices[0] + len(char_) :]
 
         else:
-            str_ = str_[(indices[0] + len(char_)): indices[-1]]
+            str_ = str_[(indices[0] + len(char_)) : indices[-1]]
     except Exception:
         return None
     return str_
 
+
 def _get_final_indices(root, ideology):
+    if root != "":
+        root = root if root[-1] == "/" else root + "/"
     indices_path = f"{root}data/out/{ideology}_idx.csv"
 
     preset_indices = []
@@ -53,6 +56,7 @@ def _get_final_indices(root, ideology):
     print("original INDICESS found")
     preset_indices = pd.read_csv(indices_path)["idx"].values.tolist()[:500]
     return preset_indices
+
 
 # Main Function
 def process_llm_generated_args(path, root="../", force_reclean=False):
@@ -70,18 +74,16 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
     experiment = path.split("/")[-1].replace(".jsonl", "")
     ideology = experiment.split("_")[0]
     indices = _get_final_indices(root, ideology)
-    
+
     df = pd.read_json(path_or_buf=path, lines=True)
     df = df.drop_duplicates(subset=["idx"], keep="last")
-    df = df[df['idx'].isin(indices)]
+    df = df[df["idx"].isin(indices)]
     # df = df.drop("original_text", axis=1)
 
     out = f"{root}data/llms_out/new/processed/{experiment}_processed.csv"
-    print(out)
     if Path(out).is_file() and not force_reclean:
         return pd.read_csv(out)
 
-    print(experiment)
     # model_type = experiment.split("_")[1]
     ideology = experiment.split("_")[0]
 
@@ -166,12 +168,14 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
         "Here is my paraphrased version of the argument:".lower(),
         "Here is my paraphrased version:".lower(),
         "Here is a paraphrased version of the argument:".lower(),
+        "Effective:".lower(),
     ]
 
     no_response = [
         "I cannot comply with your request",
         "I cannot fulfill your request",
         "I cannot provide a paraphrased argument",
+        "The argument presented is ineffective",
     ]
     format_type = ""
     for idx, row in tqdm(df.iterrows()):
@@ -198,8 +202,7 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                         "type": "DISMISSED",  # The argument is between " " or backticks
                         "flag": False,
                         "success": success,
-                        "incontent_ideology_mentioned": False
-                        > -1
+                        "incontent_ideology_mentioned": False > -1
                         and row["original_text"].lower().find(f"{ideology}")
                         < 0,
                         "ideology_mentioned": row[col]
@@ -265,7 +268,7 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                         format_type = "refused to respond"
                         success = False
                 if not refuse_to_respond:
-                    print(f"!!!!!!! Not by quotes, not sticks and not phrases")
+                    print("!!!!!!! Not by quotes, not sticks and not phrases")
                     print(sub)
 
             # Exceptional handling - some unmapped quotes
@@ -287,9 +290,9 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                 i = row[col].find(cleaned_arg)
                 # success = True
                 flag_ = True
-                #llm_out_msge = (
+                # llm_out_msge = (
                 #    f"{row[col][0:i]}...{row[col][len(cleaned_arg)+i: ]}"
-                #)
+                # )
                 # print(
                 #    f"######### {row['idx']} generated text for {col}"
                 #    # f"{sub} -\n ****kept:*** \n {row[col][i: len(sub)+1]}\n"
@@ -310,18 +313,42 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                     else ""
                 )
             i = row[col].find(cleaned_arg)
+
+            def remove_end_phrases(str_: str):
+                str_.replace("´´´´", "").replace("'''", "").replace(
+                    "```", ""
+                ).strip()
+
+                end_lst = [
+                    "I hope this paraphrased argument meets your requirements!",
+                    "Let me know if you have any further questions.",
+                    "I hope this paraphrased version of the argument meets your requirements.",
+                    "Please let me know if you have any further instructions or questions.",
+                    "As you requested, I have paraphrased the argument without changing the stance of the original argument. ",
+                    "I have maintained the original length of the argument as much as possible and have not provided any additional information or opinion.",
+                    "Please let me know if you have any further requests.",
+                ]
+
+                if str_.lower().find("\nnote:") > -1:
+                    str_ = str_[0: str_.lower().find("\nnote:")]
+                for ending in end_lst:
+                    str_.lower().replace(ending.lower(), "")
+                str_.replace("´´´´", "").replace("'''", "").replace(
+                    "```", ""
+                ).strip()
+                return str_
+
             processing_logs.append(
                 {
                     "idx": row["idx"],
                     "prompt": col,
                     "ineffective_argument": row["text"],
                     "generated": row[col],
-                    "effective_argument": cleaned_arg.replace("´´´´", "")
-                    .replace("'''", "")
-                    .replace("```", "")
-                    .strip()
-                    if success
-                    else "",
+                    "effective_argument": (
+                        remove_end_phrases(cleaned_arg.replace("´´´´", "").replace("'''", "").replace("```", ""))
+                        if success
+                        else ""
+                    ),
                     "cannot_paraphrase": row[col].find(
                         "I cannot provide a paraphrased argument"
                     )
@@ -338,9 +365,11 @@ def process_llm_generated_args(path, root="../", force_reclean=False):
                     > -1
                     and row["original_text"].lower().find(f"{ideology}") < 0,
                     "exception": exception,
-                    "llm_out_msge": f"{row[col][0:i]}-effective_argument-{row[col][len(cleaned_arg)+i: ]}"
-                    if i > -1 and success
-                    else "",
+                    "llm_out_msge": (
+                        f"{row[col][0:i]}-effective_argument-{row[col][len(cleaned_arg)+i: ]}"
+                        if i > -1 and success
+                        else ""
+                    ),
                 }
             )
     processed_df = pd.DataFrame(processing_logs)

@@ -23,3 +23,8 @@ dist/*
 temp.py
 
 *debug.ipynb
+data/liberal_longformer/
+data/conservative
+data*.parquet
+data*.txt
+docs

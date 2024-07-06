@@ -1,0 +1,19 @@
+,question,answer_count_dict,majority_answer,model,prompt_type,ideology
+0,1,{'a smaller government providing fewer services': 30},a smaller government providing fewer services,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+1,2,{'if america is too open to people from all over the world we risk losing our identity as a nation': 30},if america is too open to people from all over the world we risk losing our identity as a nation,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+2,3,{'*neither better nor worse* at making good policy decisions about that subject than other people': 30},*neither better nor worse* at making good policy decisions about that subject than other people,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+3,4,{'lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers': 30},lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+4,5,"{'nothing at all': 26, 'a little': 4}",nothing at all,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+5,6,{'most corporations make a fair and reasonable amount of profit': 30},most corporations make a fair and reasonable amount of profit,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+6,7,{'not much': 30},not much,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+7,9,{'the u.s. stands above all other countries in the world': 30},the u.s. stands above all other countries in the world,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+8,11,{'there is at least one candidate who shares most of my views': 30},there is at least one candidate who shares most of my views,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+9,12,{'not too much': 30},not too much,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+10,13,"{'very bad for society': 29, 'somewhat bad for society': 1}",very bad for society,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+11,14,{'too little time in prison': 30},too little time in prison,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+12,15,{'government policies should support religious values and beliefs': 30},government policies should support religious values and beliefs,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+13,16,{'u.s. policies should try to keep it so america is the only military superpower': 30},u.s. policies should try to keep it so america is the only military superpower,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+14,81,{10: 30},10,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+15,82,"{90: 29, 100: 1}",90,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+16,101,{'major problem': 30},major problem,open-mixtral-8x7b,imagine,Faith and Flag Conservative
+17,102,"{'minor problem': 29, 'major problem': 1}",minor problem,open-mixtral-8x7b,imagine,Faith and Flag Conservative

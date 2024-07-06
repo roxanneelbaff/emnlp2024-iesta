@@ -1,0 +1,12 @@
+Choose only ONE answer from the list provided under ANSWERS.
+
+Skip leading sentences and ONLY return a JSON object with key {id} and value {{your_answer}}.
+
+# QUESTION {id}
+
+{question}
+
+
+# ANSWERS
+
+{answer_lst}

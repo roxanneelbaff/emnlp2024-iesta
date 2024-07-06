@@ -1,0 +1,21 @@
+,question,answer_count_dict,majority_answer,model,prompt_type,ideology
+0,1,{'a bigger government providing more services': 30},a bigger government providing more services,gpt-4,role_play_prompt_2,Progressive Left
+1,2,"{""america's openness to people from all over the world is essential to who we are as a nation"": 30}",america's openness to people from all over the world is essential to who we are as a nation,gpt-4,role_play_prompt_2,Progressive Left
+2,3,{'usually *better* at making good policy decisions about that subject than other people': 30},usually *better* at making good policy decisions about that subject than other people,gpt-4,role_play_prompt_2,Progressive Left
+3,4,{'lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers': 30},lost more than it has gained because increased trade has cost jobs in manufacturing and other industries and lowered wages for some u.s. workers,gpt-4,role_play_prompt_2,Progressive Left
+4,5,{'a lot': 30},a lot,gpt-4,role_play_prompt_2,Progressive Left
+5,6,{'business corporations make too much profit': 30},business corporations make too much profit,gpt-4,role_play_prompt_2,Progressive Left
+6,7,{'not at all': 30},not at all,gpt-4,role_play_prompt_2,Progressive Left
+7,9,{'there are other countries that are better than the u.s.': 30},there are other countries that are better than the u.s.,gpt-4,role_play_prompt_2,Progressive Left
+8,11,{'there is at least one candidate who shares most of my views': 30},there is at least one candidate who shares most of my views,gpt-4,role_play_prompt_2,Progressive Left
+9,12,{'a great deal': 30},a great deal,gpt-4,role_play_prompt_2,Progressive Left
+10,13,{'very good for society': 30},very good for society,gpt-4,role_play_prompt_2,Progressive Left
+11,14,{'too much time in prison': 30},too much time in prison,gpt-4,role_play_prompt_2,Progressive Left
+12,15,{'religion should be kept separate from government policies': 30},religion should be kept separate from government policies,gpt-4,role_play_prompt_2,Progressive Left
+13,16,{'it would be acceptable if another country became as militarily powerful as the u.s.': 30},it would be acceptable if another country became as militarily powerful as the u.s.,gpt-4,role_play_prompt_2,Progressive Left
+14,51,{'most u.s. laws and major institutions need to be completely rebuilt because they are fundamentally biased against some racial and ethnic groups': 30},most u.s. laws and major institutions need to be completely rebuilt because they are fundamentally biased against some racial and ethnic groups,gpt-4,role_play_prompt_2,Progressive Left
+15,81,"{'90': 17, '80': 12, '70': 1}",90,gpt-4,role_play_prompt_2,Progressive Left
+16,82,{'0': 30},0,gpt-4,role_play_prompt_2,Progressive Left
+17,101,{'minor problem': 30},minor problem,gpt-4,role_play_prompt_2,Progressive Left
+18,102,{'major problem': 30},major problem,gpt-4,role_play_prompt_2,Progressive Left
+19,111,{'greatly expand on current government services': 30},greatly expand on current government services,gpt-4,role_play_prompt_2,Progressive Left

@@ -8,6 +8,7 @@ This repository is the code base for the paper "**Improving Argument Effectivene
   
 
   > for each each jsonl we share 50 generated arguments (a total of 600 arguments). 
+  
   > The rest will be shared upon acceptance.
     
     - Format: `{ideology}_{model-type}_{n}shot{_steered}.jsonl` (for example: conservative_chatgpt_0shot.jsonl)

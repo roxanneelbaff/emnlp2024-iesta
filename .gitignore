@@ -30,3 +30,4 @@ data*.txt
 docs
 .DS_Store
 data/training
+.vscode

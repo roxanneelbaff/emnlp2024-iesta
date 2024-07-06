@@ -25,6 +25,7 @@ temp.py
 *debug.ipynb
 data/liberal_longformer/
 data/conservative
-data*.parquet
+data/extracted_features/*/*.parquet
 data*.txt
 docs
+.DS_Store

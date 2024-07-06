@@ -1,6 +1,7 @@
 # IESTA - Ineffective-effective Style Transfer for Arguments
 This repository is the code base for the paper "**Improving Argument Effectiveness Across Ideologies using Instruction-tuned Large Language Models**" submitted to COLING 2024.
 
+
 ## Data Links
 
 - **Generated effective arguments**: [[link](data/llms_out/new/)]
@@ -14,15 +15,19 @@ This repository is the code base for the paper "**Improving Argument Effectivene
   - **LLM**:  
     - [Impersonation Exp] PEW Quiz Results [[raw](data/llm_ideology/pew_quiz_results), [processed](data/llm_ideology/pew_quiz_results_processed)]
     - [Impersonation Exp] Tested Role templates for PEW: [[link](data/llm_ideology/role_templates.json)]
-    - [Evaluation] [prompt](data/llm_ideology/evaluation_prompt.txt)
+    - [Evaluation] [prompt](data/llm_ideology/evaluation_prompt.txt), [results](data/llms_out/llm_evaluation/) 
+  - **Human**: [data](data/human_evaluation/)  
   
+
 ## Code Overview
+
 ### 1. Installation and Requirements
 
 Install the required packages from [the requirements file](requirements.txt) using `pip install -r requirements.txt`.
 
 The code is a Python package that can be downloaded locally with the following command when you access the code folder locally:
 `pip install .`
+
 
 ### 2. General Structure
 The main folder contains the following:
@@ -32,6 +37,7 @@ The main folder contains the following:
 - `iesta`: the python package that contains the main code for the paper (see below for more details)
 - `data`: contains the original and generated data
 - `scripts` and `notebooks`: execute the `iesta` code
+
 
 ### 3. Mapping Code to Paper Sections
 
@@ -52,6 +58,7 @@ The main folder contains the following:
 - Paper Section 5.2 _Experiments_ POSTPROCESSING: `iesta.evaluator.generation_processor.py` [[link](iesta/evaluator/generation_processor.py)]  
 
 #### PART III: Evaluation
+
 - Paper Section 5.3 _Automatic Evaluation_: `iesta.evaluator.evaluator.py` [[link](iesta/evaluator/evaluator.py)]
 - Paper Section 6.1 _LLM-Based Evaluation_: `notebooks/llm_evaluator.ipynb` [[link](notebooks/llm_evaluator.ipynb)]
 - Paper Section 6.2 _Human-Based Evaluation_: `notebooks/human_evaluation.ipynb` [[link](notebooks/human_evaluation.ipynb)]

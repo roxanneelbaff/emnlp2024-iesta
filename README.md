@@ -7,7 +7,8 @@ This repository is the code base for the paper "**Improving Argument Effectivene
 - **Generated effective arguments**: [[link](https://anonymous.4open.science/r/iesta-june2024/data/llms_out/new/)]
   
 
-      > for each each jsonl we share 50 generated arguments (a total of 600 arguments). The rest will be shared upon acceptance.
+  > for each each jsonl we share 50 generated arguments (a total of 600 arguments). 
+  > The rest will be shared upon acceptance.
     
     - Format: `{ideology}_{model-type}_{n}shot{_steered}.jsonl` (for example: conservative_chatgpt_0shot.jsonl)
       - **ideology**: refers to the target reader's ideology - it has one of these values: _liberal_ or _conservative_

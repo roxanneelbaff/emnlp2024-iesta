@@ -1,5 +1,5 @@
 # IESTA - Ineffective-effective Style Transfer for Arguments
-This repository is the code base for the paper "**Improving Argument Effectiveness Across Ideologies using Instruction-tuned Large Language Models**" submitted to COLING 2024.
+This repository is the code base for the paper "**Improving Argument Effectiveness Across Ideologies using Instruction-tuned Large Language Models**" Accepted at EMNLP2024 Findings.
 
 
 ## Data Links
